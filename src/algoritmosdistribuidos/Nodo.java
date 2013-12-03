@@ -45,7 +45,10 @@ public class Nodo extends Thread {
     }
 
     public boolean sendSignal(/*signal, E, */int myId) {
-        if ((this.inDeficit > 1) || ((this.inDeficit == 1) && (this.terminado) && (this.outDeficit == 0))) {
+        if (this.inDeficit > 1) {
+           if ((this.inDeficit == 1) && (this.terminado) && (this.outDeficit == 0)){
+               //enviarle el mensaje al padre y acabar.
+           }
             /*
              E ← some edge E with inDeficit[E] = 0
              send(signal, E, myID)
@@ -61,5 +64,13 @@ public class Nodo extends Thread {
     public void receiveSignal() {
         receive(signal,_);
         this.outDeficit--;
+    }
+    
+    public boolean Terminado(int inDeficit){
+         return this.terminado=(inDeficit == 0);
+    }
+    
+    public int getNodeId(){
+        return this.id;
     }
 }
