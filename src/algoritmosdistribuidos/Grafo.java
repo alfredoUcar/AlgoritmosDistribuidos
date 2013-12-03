@@ -15,6 +15,7 @@ import java.util.*;
  * @author pablo
  */
 public class Grafo {
+    static final int RAIZ = 0; //id de la raiz
     AbstractList<Nodo> nodos;
     
     public Grafo(Nodo raiz){
@@ -25,7 +26,7 @@ public class Grafo {
     }
     
     public Nodo getRaiz(){
-        return getNodo(0);        
+        return getNodo(RAIZ);        
     }
         
     
@@ -35,7 +36,7 @@ public class Grafo {
         Iterator<Nodo> it= nodos.iterator();        
         while(it.hasNext()){
             Nodo n = it.next();
-            if (n.id==id){
+            if (n.getNodeId()==id){
                 nodo=n; break; //encontrado
             }
         }
