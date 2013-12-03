@@ -12,4 +12,13 @@ package algoritmosdistribuidos;
  */
 public class Nodo {
     
+    private int id;
+    //private cola; cola de mensajes
+
+    public Nodo(int id) {
+        this.id = id;
+    }
+    
+    
+    
 }
