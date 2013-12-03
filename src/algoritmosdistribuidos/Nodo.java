@@ -66,7 +66,7 @@ public class Nodo extends Thread {
     }
 
     public void receiveSignal() {
-        receive(signal,_);
+        //receive(signal,_);
         this.outDeficit--;
     }
     
