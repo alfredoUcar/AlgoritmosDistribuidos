@@ -69,4 +69,8 @@ public class Nodo extends Thread {
     public boolean Terminado(int inDeficit){
          return this.terminado=(inDeficit == 0);
     }
+    
+    public int getNodeId(){
+        return this.id;
+    }
 }
