@@ -13,7 +13,8 @@ import java.util.AbstractList;
  */
 public class Nodo extends Thread {
 
-    private int id, idPadre, inDeficit, outDeficit;
+    private int id, inDeficit, outDeficit;
+    private int idPadre = -1;
     private int deudores[];
     private boolean terminado;
 
@@ -37,7 +38,10 @@ public class Nodo extends Thread {
      */
     public void sendMensj(String mensaje, int idReceptor, int myId) {
         //enviamos el mensaje al nodo indicado
-        this.outDeficit++;
+        if (this.idPadre != -1){
+            this.outDeficit++;
+        }
+        
     }
 
     public void receiveMensj(String mensaje, int idEmisor) {
