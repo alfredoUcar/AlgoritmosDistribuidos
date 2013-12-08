@@ -5,6 +5,9 @@
  */
 package algoritmosdistribuidos;
 
+import com.trendrr.beanstalk.BeanstalkClient;
+import com.trendrr.beanstalk.BeanstalkException;
+import com.trendrr.beanstalk.BeanstalkJob;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,25 +18,46 @@ import java.util.List;
  */
 public class Nodo extends Thread {
 
+    private final String SIGNAL = "SIGNAL";
+    private final String FIN = "FIN";
+    private final String HOST = "localhost";
+    private final int PORT = 11300;
+
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
     private int deudores[];
     private boolean terminado;
-
+    private BeanstalkClient Client;
+    private String tube;
+    private List<Integer> inDeficits;
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
 
+    public Nodo(int id) {
+        this.id = id;
+        this.inDeficit = 0;
+        this.outDeficit = 0;
+        this.idPadre = -1;
+        this.terminado = false;
+        idPredecesores = new ArrayList<>();
+        idSucesores = new ArrayList<>();
+        inDeficits = new ArrayList<>();
+        tube = String.valueOf(id);
+        Client = new BeanstalkClient(HOST, PORT, tube);
+    }
+
     public Nodo(int id, int idPadre) {
-        
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
         this.idPadre = idPadre;
         this.terminado = false;
-        idPredecesores=new ArrayList<Integer>();
-        idSucesores=new ArrayList<Integer>();
+        idPredecesores = new ArrayList<>();
+        idSucesores = new ArrayList<>();
+        inDeficits = new ArrayList<>();
+        tube = String.valueOf(id);
+        Client = new BeanstalkClient(HOST, PORT, tube);
     }
-    
 
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
@@ -44,28 +68,42 @@ public class Nodo extends Thread {
      */
     public void sendMensj(String mensaje, int idReceptor, int myId) {
         //enviamos el mensaje al nodo indicado
-        if (this.idPadre != -1){
-            this.outDeficit++;
+        if (idPadre != -1) {//solo nodos activos
+            //send(mensaje,idReceptor,miId);
+            outDeficit++;
         }
-        
+
     }
 
     public void receiveMensj(String mensaje, int idEmisor) {
-        this.inDeficit++;
+        if (idPadre == -1) {
+            idPadre = idEmisor;
+            //TODO: hacer algo más??
+        }
+        int index = idPredecesores.get(idEmisor);
+        idPredecesores.set(index, inDeficits.get(index) + 1);
+        inDeficit++;
     }
 
-    public boolean sendSignal(/*signal, E, */int myId) {
-        if (this.inDeficit > 1) {
-           if ((this.inDeficit == 1) && (this.terminado) && (this.outDeficit == 0)){
-               //enviarle el mensaje al padre y acabar.
-           }
-            /*
-             E ← some edge E with inDeficit[E] = 0
-             send(signal, E, myID)
-             decrement inDeficit[E] and inDeficit
-             */
-            //send(signal, E, myId);
-            this.inDeficit--;
+    public boolean sendSignal(/*signal, E, */int myId) {        
+        if (inDeficit > 1) {
+            int i;
+            for (i=0; i<inDeficits.size();i++) {
+                if((inDeficits.get(i)>1) || (inDeficits.get(i)==1 && idPredecesores.get(i)!=idPadre)) break;
+            }
+            
+            if (i<inDeficits.size()){
+                sendMensj(SIGNAL,idPredecesores.get(i), id);
+                inDeficits.set(i, inDeficits.get(i)-1);
+                inDeficit--;
+                return true;
+            }
+            return false;
+        } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
+            //send(signal, parent, myID)
+            inDeficits.set(inDeficits.indexOf(idPadre),0);
+            inDeficit=0;
+            idPadre=-1;
             return true;
         }
         return false;
@@ -73,47 +111,65 @@ public class Nodo extends Thread {
 
     public void receiveSignal() {
         //receive(signal,_);
-        this.outDeficit--;
+        outDeficit--;
     }
-    
-    public boolean Terminado(int inDeficit){
-         return this.terminado=(inDeficit == 0);
+
+    public boolean Terminado(int inDeficit) {
+        return terminado = (inDeficit == 0);
     }
-    
+
     //devuelve el identificador del nodo
-    public int getNodeId(){
+    public int getNodeId() {
         return this.id;
     }
-    
+
     /*Añade un hijo al nodo*/
-    public void addSucesor(int idSucesor){
+    public void addSucesor(int idSucesor) {
         idSucesores.add(idSucesor);
     }
-    
+
     /*Añade un predecesor al nodo*/
-    public void addPredecesor(int idPredecesor){
+    public void addPredecesor(int idPredecesor) {
         idPredecesores.add(idPredecesor);
     }
-    
-    public List <Integer> predecesores(){
+
+    public List<Integer> predecesores() {
         return idPredecesores;
     }
-    
-    public List <Integer> sucesores(){
+
+    public List<Integer> sucesores() {
         return idSucesores;
     }
 
     boolean hasSucesor(int id) {
-        for (int sucesor : idSucesores){
-            if (sucesor==id) return true;
+        for (int sucesor : idSucesores) {
+            if (sucesor == id) {
+                return true;
+            }
         }
         return false;
     }
-    
+
     boolean hasPredecesor(int id) {
-        for (int predecesor : idPredecesores){
-            if (predecesor==id) return true;
+        for (int predecesor : idPredecesores) {
+            if (predecesor == id) {
+                return true;
+            }
         }
         return false;
+    }
+
+    void print() {
+        System.out.println("id:\t" + id);
+        System.out.println("padre:\t" + idPadre);
+        System.out.println("predecesores:\t" + idPredecesores.toString());
+        System.out.println("sucesores:\t" + idSucesores.toString());
+    }
+
+    void initDeficits() {
+        //ponemos a cero todos los inDeficit del nodo
+        for (int i = 0; i < idPredecesores.size(); i++) {
+            inDeficits.add(0);
+        }
     }
 }

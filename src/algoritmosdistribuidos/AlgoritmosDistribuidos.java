@@ -5,6 +5,9 @@
  */
 package algoritmosdistribuidos;
 
+import com.trendrr.beanstalk.BeanstalkClient;
+import com.trendrr.beanstalk.BeanstalkException;
+import com.trendrr.beanstalk.BeanstalkJob;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,17 +28,29 @@ public class AlgoritmosDistribuidos {
         
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
-        List<Nodo> nodos = new ArrayList<Nodo>() {
-        };
+        Nodo[] nodos = new Nodo[red.size()-1];
 
-        //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos
-        for (int id : red.getNodos()) {
-            if (id == 0) {
+        //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
+        for (int i=0; i<red.getNodes().size();i++) {
+            int id=red.getNodes().get(i);            
+            if (id==0) {
                 continue; //nodo raiz
             }
-            Nodo n = new Nodo(id, -1);
-            nodos.add(n); //añadimos el nodo a la lista
+            Nodo n = new Nodo(id); //crea el nodo
+            nodos[i-1]=n; //añadimos el nodo a la lista
         }
+        
+        //inicializa los predecesores y sucesores de cada nodo
+        for(Nodo n : nodos){
+            int id=n.getNodeId();
+            for (Enlace e : red.getLinks()){
+                if(id==e.Pre()) n.addSucesor(e.Post()); //relación n->b
+                if(id==e.Post()) n.addPredecesor(e.Pre()); //relación a->n
+            }
+            n.initDeficits();
+        }
+        
+        
         
         //inicia los hilos
         for (Nodo n : nodos) {
@@ -51,6 +66,6 @@ public class AlgoritmosDistribuidos {
             }
         }
 
-    }
+    }    
 
 }
