@@ -6,6 +6,8 @@
 package algoritmosdistribuidos;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -18,16 +20,20 @@ public class Nodo extends Thread {
     private int deudores[];
     private boolean terminado;
 
-    AbstractList<Integer> idPadres;
-    AbstractList<Integer> idHijos;
+    private List<Integer> idPredecesores;
+    private List<Integer> idSucesores;
 
     public Nodo(int id, int idPadre) {
+        
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
         this.idPadre = idPadre;
         this.terminado = false;
+        idPredecesores=new ArrayList<Integer>();
+        idSucesores=new ArrayList<Integer>();
     }
+    
 
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
@@ -74,7 +80,40 @@ public class Nodo extends Thread {
          return this.terminado=(inDeficit == 0);
     }
     
+    //devuelve el identificador del nodo
     public int getNodeId(){
         return this.id;
+    }
+    
+    /*Añade un hijo al nodo*/
+    public void addSucesor(int idSucesor){
+        idSucesores.add(idSucesor);
+    }
+    
+    /*Añade un predecesor al nodo*/
+    public void addPredecesor(int idPredecesor){
+        idPredecesores.add(idPredecesor);
+    }
+    
+    public List <Integer> predecesores(){
+        return idPredecesores;
+    }
+    
+    public List <Integer> sucesores(){
+        return idSucesores;
+    }
+
+    boolean hasSucesor(int id) {
+        for (int sucesor : idSucesores){
+            if (sucesor==id) return true;
+        }
+        return false;
+    }
+    
+    boolean hasPredecesor(int id) {
+        for (int predecesor : idPredecesores){
+            if (predecesor==id) return true;
+        }
+        return false;
     }
 }

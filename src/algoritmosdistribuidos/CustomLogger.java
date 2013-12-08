@@ -13,20 +13,20 @@ import java.util.Date;
  *
  * @author alfredo
  */
-public class Logger extends Thread {
+public class CustomLogger extends Thread {
     private int messages;
     private File output;
     private String lastMsg;
     private boolean stampDate;
     
-    public Logger(File log){
+    public CustomLogger(File log){
         messages=0;
         stampDate=true;
         output=log.exists()? log : new File("/users/algoritmos_distribuidos.log");
     }
     
     //stampDate: true para mostrar fecha y hora del mensaje
-    public Logger(File log, boolean stampDate){
+    public CustomLogger(File log, boolean stampDate){
         messages=0;
         stampDate=true;
         output=log.exists()? log : new File("/users/algoritmos_distribuidos.log");
