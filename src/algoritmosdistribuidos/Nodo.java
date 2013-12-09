@@ -25,7 +25,6 @@ public class Nodo extends Thread {
 
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
-    private int deudores[];
     private boolean terminado;
     private BeanstalkClient Client;
     private String tube;
@@ -38,19 +37,6 @@ public class Nodo extends Thread {
         this.inDeficit = 0;
         this.outDeficit = 0;
         this.idPadre = -1;
-        this.terminado = false;
-        idPredecesores = new ArrayList<>();
-        idSucesores = new ArrayList<>();
-        inDeficits = new ArrayList<>();
-        tube = String.valueOf(id);
-        Client = new BeanstalkClient(HOST, PORT, tube);
-    }
-
-    public Nodo(int id, int idPadre) {
-        this.id = id;
-        this.inDeficit = 0;
-        this.outDeficit = 0;
-        this.idPadre = idPadre;
         this.terminado = false;
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
