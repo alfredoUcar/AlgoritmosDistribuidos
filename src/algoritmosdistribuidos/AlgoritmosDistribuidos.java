@@ -50,8 +50,6 @@ public class AlgoritmosDistribuidos {
             n.initDeficits();
         }
         
-        
-        
         //inicia los hilos
         for (Nodo n : nodos) {
             n.start();
