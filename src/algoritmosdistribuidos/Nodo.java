@@ -8,9 +8,9 @@ package algoritmosdistribuidos;
 import com.trendrr.beanstalk.BeanstalkClient;
 import com.trendrr.beanstalk.BeanstalkException;
 import com.trendrr.beanstalk.BeanstalkJob;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.*;
 
 /**
  *
@@ -42,9 +42,20 @@ public class Nodo extends Thread {
         idSucesores = new ArrayList<>();
         inDeficits = new ArrayList<>();
         tube = String.valueOf(id);
-        Client = new BeanstalkClient(HOST, PORT, tube);
+        //Client = new BeanstalkClient(HOST, PORT, tube);
     }
 
+    public void send(String mensaje, int idRecpetor){
+        String message = (tube + ":" + mensaje);
+
+        try {
+            Client.useTube(String.valueOf(idRecpetor));
+            Client.put(1l, 0, 5000, message.getBytes());
+        } catch (BeanstalkException ex) {
+            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
      * la cola de mensajes del nodo a otro nodo especi ficado por id. El
@@ -55,7 +66,7 @@ public class Nodo extends Thread {
     public void sendMensj(String mensaje, int idReceptor, int myId) {
         //enviamos el mensaje al nodo indicado
         if (idPadre != -1) {//solo nodos activos
-            //send(mensaje,idReceptor,miId);
+            send(mensaje,idReceptor);
             outDeficit++;
         }
 
@@ -86,7 +97,7 @@ public class Nodo extends Thread {
             }
             return false;
         } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
-            //send(signal, parent, myID)
+            send(SIGNAL, idPadre);
             inDeficits.set(inDeficits.indexOf(idPadre),0);
             inDeficit=0;
             idPadre=-1;
