@@ -18,11 +18,13 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
+    static int numMensajes = 0;
     private final String SIGNAL = "SIGNAL";
     private final String FIN = "FIN";
     private final String HOST = "localhost";
     private final int PORT = 11300;
 
+    final int RAIZ = 0;
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
     private boolean terminado;
@@ -65,9 +67,10 @@ public class Nodo extends Thread {
      */
     public void sendMensj(String mensaje, int idReceptor, int myId) {
         //enviamos el mensaje al nodo indicado
-        if (idPadre != -1) {//solo nodos activos
+        if (idPadre != -1 || myId == RAIZ) {//solo nodos activos
             send(mensaje,idReceptor);
             outDeficit++;
+            numMensajes++;
         }
 
     }
