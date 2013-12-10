@@ -56,7 +56,9 @@ public class AlgoritmosDistribuidos {
         }
         
         //mandar trabajos
-        List<Integer> hijosRaiz=red.getSucesoresRaiz();
+//        List<Integer> hijosRaiz=red.getSucesoresRaiz();
+        Nodo raiz = new Nodo(0);
+        List<Integer> hijosRaiz = raiz.sucesores();
         int trabajoSucesor=trabajo/hijosRaiz.size();//reparte el trabajo entre cada hijo        
         for (int i = 0; i < numTrabajos; i++) {
             Nodo nodo = nodos[i];
