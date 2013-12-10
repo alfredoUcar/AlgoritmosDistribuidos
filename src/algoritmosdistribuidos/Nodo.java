@@ -148,6 +148,8 @@ public class Nodo extends Thread {
             }
         }
         return false;
+          //@FIXME:
+//       return idSucesores.contains(id);
     }
 
     boolean hasPredecesor(int id) {
@@ -157,6 +159,9 @@ public class Nodo extends Thread {
             }
         }
         return false;
+       //@FIXME:
+//        return idPredecesores.contains(id); 
+
     }
 
     void print() {
