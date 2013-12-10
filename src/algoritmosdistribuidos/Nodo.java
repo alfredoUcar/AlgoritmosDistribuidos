@@ -34,6 +34,7 @@ public class Nodo extends Thread {
     private List<Integer> inDeficits;
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
+    private int trabajo;
 
     public Nodo(int id) {
         this.id = id;
@@ -78,7 +79,7 @@ public class Nodo extends Thread {
 
     }
 
-    public void receiveMensj(String mensaje, int idEmisor) {
+    public void recieveMensj(String mensaje, int idEmisor) {
         if (idPadre == -1) {
             idPadre = idEmisor;
             //TODO: hacer algo más??
@@ -114,8 +115,8 @@ public class Nodo extends Thread {
         return false;
     }
 
-    public void receiveSignal() {
-        //receive(signal,_);
+    public void recieveSignal() {
+        //recieve(signal,_);
         outDeficit--;
     }
 
@@ -173,7 +174,7 @@ public class Nodo extends Thread {
     @Override
     public void run(){
         if(id==RAIZ){
-            repartirTrabajo();
+            entorno();
         }else{
             trabajar();
         }
@@ -193,8 +194,17 @@ public class Nodo extends Thread {
         }
     }
 
-    private void repartirTrabajo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void entorno() {
+        for (int i = 0; i < trabajo; i++) {
+            for (int sucesor : idSucesores){
+                send("men", sucesor);
+            }
+            
+            while (outDeficit > 0){
+                //recieveMensj();
+            }
+        }
+        
     }
 
     private void trabajar() {
