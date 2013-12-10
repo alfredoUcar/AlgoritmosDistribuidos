@@ -5,13 +5,8 @@
  */
 package algoritmosdistribuidos;
 
-import com.trendrr.beanstalk.BeanstalkClient;
-import com.trendrr.beanstalk.BeanstalkException;
-import com.trendrr.beanstalk.BeanstalkJob;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +58,5 @@ public class AlgoritmosDistribuidos {
                 Logger.getLogger(AlgoritmosDistribuidos.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }    
-
 }
