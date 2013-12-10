@@ -84,7 +84,15 @@ public class Grafo {
     public int getNode(int index){
         return (nodes.get(index));
     }
-
+    
+    public List<Integer> getSucesoresRaiz(){
+        List<Integer> sucesores = new ArrayList<>();
+        for(Enlace e : links){
+            if (e.Pre()==RAIZ) sucesores.add(e.Post());
+        }        
+        return sucesores;
+    }
+    
     List<Integer> getNodes() {        
         return nodes;
     }

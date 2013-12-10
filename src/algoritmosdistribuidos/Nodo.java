@@ -18,10 +18,10 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
-    private final String SIGNAL = "SIGNAL";
-    private final String FIN = "FIN";
-    private final String HOST = "localhost";
-    private final int PORT = 11300;
+    final static String SIGNAL = "SIGNAL";
+    final static String FIN = "FIN";
+    final static String HOST = "localhost";
+    final static int PORT = 11300;
 
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
@@ -45,7 +45,7 @@ public class Nodo extends Thread {
         Client = new BeanstalkClient(HOST, PORT, tube);
     }
 
-    public void send(String mensaje, int idRecpetor){
+    public void send(String mensaje, int idRecpetor) {
         String message = (tube + ":" + mensaje);
 
         try {
@@ -56,6 +56,7 @@ public class Nodo extends Thread {
         }
 
     }
+
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
      * la cola de mensajes del nodo a otro nodo especi ficado por id. El
@@ -66,7 +67,7 @@ public class Nodo extends Thread {
     public void sendMensj(String mensaje, int idReceptor, int myId) {
         //enviamos el mensaje al nodo indicado
         if (idPadre != -1) {//solo nodos activos
-            send(mensaje,idReceptor);
+            send(mensaje, idReceptor);
             outDeficit++;
         }
 
@@ -82,25 +83,27 @@ public class Nodo extends Thread {
         inDeficit++;
     }
 
-    public boolean sendSignal(/*signal, E, */int myId) {        
+    public boolean sendSignal(/*signal, E, */int myId) {
         if (inDeficit > 1) {
             int i;
-            for (i=0; i<inDeficits.size();i++) {
-                if((inDeficits.get(i)>1) || (inDeficits.get(i)==1 && idPredecesores.get(i)!=idPadre)) break;
+            for (i = 0; i < inDeficits.size(); i++) {
+                if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && idPredecesores.get(i) != idPadre)) {
+                    break;
+                }
             }
-            
-            if (i<inDeficits.size()){
-                sendMensj(SIGNAL,idPredecesores.get(i), id);
-                inDeficits.set(i, inDeficits.get(i)-1);
+
+            if (i < inDeficits.size()) {
+                sendMensj(SIGNAL, idPredecesores.get(i), id);
+                inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
                 return true;
             }
             return false;
         } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
             send(SIGNAL, idPadre);
-            inDeficits.set(inDeficits.indexOf(idPadre),0);
-            inDeficit=0;
-            idPadre=-1;
+            inDeficits.set(inDeficits.indexOf(idPadre), 0);
+            inDeficit = 0;
+            idPadre = -1;
             return true;
         }
         return false;

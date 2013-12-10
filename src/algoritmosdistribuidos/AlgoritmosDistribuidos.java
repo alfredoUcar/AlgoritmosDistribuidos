@@ -29,6 +29,9 @@ public class AlgoritmosDistribuidos {
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()-1];
+        BeanstalkClient Client= new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
+        int trabajo = 100; //esperar 100 milisegundos
+        int numTrabajos = 10;
 
         //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
         for (int i=0; i<red.getNodes().size();i++) {
@@ -53,6 +56,15 @@ public class AlgoritmosDistribuidos {
         //inicia los hilos
         for (Nodo n : nodos) {
             n.start();
+        }
+        
+        //mandar trabajos
+        List<Integer> hijosRaiz=red.getSucesoresRaiz();
+        int trabajoSucesor=trabajo/hijosRaiz.size();
+        
+        for (int i = 0; i < numTrabajos; i++) {
+            Nodo nodo = nodos[i];
+            
         }
 
         //reaper
