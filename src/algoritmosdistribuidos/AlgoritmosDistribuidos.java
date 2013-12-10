@@ -32,10 +32,7 @@ public class AlgoritmosDistribuidos {
 
         //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
         for (int i=0; i<red.getNodes().size();i++) {
-            int id=red.getNodes().get(i);            
-            if (id==0) {
-                continue; //nodo raiz
-            }
+            int id=red.getNodes().get(i);
             Nodo n = new Nodo(id); //crea el nodo
             nodos[i-1]=n; //añadimos el nodo a la lista
         }
@@ -54,14 +51,6 @@ public class AlgoritmosDistribuidos {
         for (Nodo n : nodos) {
             n.start();
         }
-        
-        //mandar trabajos
-        List<Integer> hijosRaiz=red.getSucesoresRaiz();
-        int trabajoSucesor=trabajo/hijosRaiz.size();//reparte el trabajo entre cada hijo        
-        for (int i = 0; i < numTrabajos; i++) {
-            Nodo nodo = nodos[i];
-            
-        }
 
         //reaper
         for (Nodo n : nodos) {
@@ -72,4 +61,8 @@ public class AlgoritmosDistribuidos {
             }
         }
     }    
+
+    private static void send(int trabajoSucesor, int hijoRaiz) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

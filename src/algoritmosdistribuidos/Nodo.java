@@ -163,6 +163,16 @@ public class Nodo extends Thread {
         }
         return false;
     }
+    
+    
+    @Override
+    public void run(){
+        if(id==RAIZ){
+            repartirTrabajo();
+        }else{
+            trabajar();
+        }
+    }
 
     void print() {
         System.out.println("id:\t" + id);
@@ -176,5 +186,13 @@ public class Nodo extends Thread {
         for (int i = 0; i < idPredecesores.size(); i++) {
             inDeficits.add(0);
         }
+    }
+
+    private void repartirTrabajo() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void trabajar() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
