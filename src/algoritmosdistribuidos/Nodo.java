@@ -42,7 +42,7 @@ public class Nodo extends Thread {
         idSucesores = new ArrayList<>();
         inDeficits = new ArrayList<>();
         tube = String.valueOf(id);
-        //Client = new BeanstalkClient(HOST, PORT, tube);
+        Client = new BeanstalkClient(HOST, PORT, tube);
     }
 
     public void send(String mensaje, int idRecpetor){
