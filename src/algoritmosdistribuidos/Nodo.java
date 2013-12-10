@@ -18,7 +18,6 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
-
     final static String SIGNAL = "SIGNAL";
     final static String FIN = "FIN";
     final static String HOST = "localhost";
@@ -34,6 +33,7 @@ public class Nodo extends Thread {
     private List<Integer> inDeficits;
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
+    private int trabajo;
 
     public Nodo(int id) {
         this.id = id;
@@ -168,9 +168,9 @@ public class Nodo extends Thread {
     @Override
     public void run(){
         if(id==RAIZ){
-            repartirTrabajo();
+            entorno();
         }else{
-            trabajar();
+            noEntorno();
         }
     }
 
@@ -187,12 +187,22 @@ public class Nodo extends Thread {
             inDeficits.add(0);
         }
     }
+    
+    protected void trabajo(String mensaje){
+        //el trabajo consiste en esperar un tiempo
+        int tiempo = Integer.parseInt(mensaje); 
+        try {
+            Thread.sleep(tiempo);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
-    private void repartirTrabajo() {
+    private void entorno() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private void trabajar() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void noEntorno() {
+        
     }
 }
