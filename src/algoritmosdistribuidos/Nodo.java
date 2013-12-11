@@ -91,6 +91,10 @@ public class Nodo extends Thread {
         return new Mensaje(Integer.parseInt(origen), msg);
     }
     
+    public void close(){
+        Client.close();
+    }
+    
     //Hasta aquí Beanstalk
 
     /**
@@ -218,7 +222,14 @@ public class Nodo extends Thread {
             }
             
             while (outDeficit > 0){
-                //recieveMensj();
+                //mientras me deban mensajes
+                try{
+                    msg = recieve();
+                    //miro si me llegan signals
+                    if (msg.getMsg().equals("signal")){
+                        recieveSignal();
+                    }
+                }catch(Exception e){}
             }
         }
         
