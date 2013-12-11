@@ -18,7 +18,6 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
-
     final static String SIGNAL = "SIGNAL";
     final static String FIN = "FIN";
     final static String HOST = "localhost";
@@ -48,7 +47,14 @@ public class Nodo extends Thread {
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
     }
+    
+    //A continuación los métodos que hacen uso del Beanstalk
 
+    /**
+     * 
+     * @param mensaje
+     * @param idRecpetor 
+     */
     public void send(String mensaje, int idRecpetor) {
         String message = (tube + ":" + mensaje);
 
@@ -60,6 +66,32 @@ public class Nodo extends Thread {
         }
 
     }
+    
+    /**
+     * 
+     * @return 
+     */
+    private Mensaje recieve() {
+        BeanstalkJob job = null;
+        String message;
+        String origen;
+        String msg;
+        try {
+            Client.useTube(tube);
+            job = Client.reserve(1);
+            message = new String(job.getData());
+            msg = message.split(":")[1];
+            origen = message.split(":")[0];
+        } catch (Exception ex) {
+            msg = "";
+            origen = "-1";
+
+        }
+
+        return new Mensaje(Integer.parseInt(origen), msg);
+    }
+    
+    //Hasta aquí Beanstalk
 
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
@@ -116,11 +148,10 @@ public class Nodo extends Thread {
     }
 
     public void recieveSignal() {
-        //recieve(signal,_);
         outDeficit--;
     }
 
-    public boolean Terminado(int inDeficit) {
+    public boolean terminado(int inDeficit) {
         return terminado = (inDeficit == 0);
     }
 
@@ -148,38 +179,14 @@ public class Nodo extends Thread {
     }
 
     boolean hasSucesor(int id) {
-        for (int sucesor : idSucesores) {
-            if (sucesor == id) {
-                return true;
-            }
-        }
-        return false;
-          //@FIXME:
-//       return idSucesores.contains(id);
+        return idSucesores.contains(id);
     }
 
     boolean hasPredecesor(int id) {
-        for (int predecesor : idPredecesores) {
-            if (predecesor == id) {
-                return true;
-            }
-        }
-        return false;
-       //@FIXME:
-//        return idPredecesores.contains(id); 
+        return idPredecesores.contains(id); 
 
     }
     
-    
-    @Override
-    public void run(){
-        if(id==RAIZ){
-            entorno();
-        }else{
-            trabajar();
-        }
-    }
-
     void print() {
         System.out.println("id:\t" + id);
         System.out.println("padre:\t" + idPadre);
@@ -193,8 +200,18 @@ public class Nodo extends Thread {
             inDeficits.add(0);
         }
     }
+    
+    @Override
+    public void run(){
+        if(id==RAIZ){
+            entorno();
+        }else{
+            trabajar();
+        }
+    }
 
     private void entorno() {
+        Mensaje msg = new Mensaje(-1,"");
         for (int i = 0; i < trabajo; i++) {
             for (int sucesor : idSucesores){
                 send("men", sucesor);
