@@ -203,6 +203,8 @@ public class Nodo extends Thread {
     }
 
     private void noEntorno() {
-        
+        for(int sucesor : idSucesores){
+            
+        }
     }
 }
