@@ -47,7 +47,14 @@ public class Nodo extends Thread {
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
     }
+    
+    //A continuación los métodos que hacen uso del Beanstalk
 
+    /**
+     * 
+     * @param mensaje
+     * @param idRecpetor 
+     */
     public void send(String mensaje, int idRecpetor) {
         String message = (tube + ":" + mensaje);
 
@@ -59,6 +66,36 @@ public class Nodo extends Thread {
         }
 
     }
+    
+    /**
+     * 
+     * @return 
+     */
+    private Mensaje recieve() {
+        BeanstalkJob job = null;
+        String message;
+        String origen;
+        String msg;
+        try {
+            Client.useTube(tube);
+            job = Client.reserve(1);
+            message = new String(job.getData());
+            msg = message.split(":")[1];
+            origen = message.split(":")[0];
+        } catch (Exception ex) {
+            msg = "";
+            origen = "-1";
+
+        }
+
+        return new Mensaje(Integer.parseInt(origen), msg);
+    }
+    
+    public void close(){
+        Client.close();
+    }
+    
+    //Hasta aquí Beanstalk
 
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
@@ -78,7 +115,7 @@ public class Nodo extends Thread {
 
     }
 
-    public void receiveMensj(String mensaje, int idEmisor) {
+    public void recieveMensj(String mensaje, int idEmisor) {
         if (idPadre == -1) {
             idPadre = idEmisor;
             //TODO: hacer algo más??
@@ -114,12 +151,11 @@ public class Nodo extends Thread {
         return false;
     }
 
-    public void receiveSignal() {
-        //receive(signal,_);
+    public void recieveSignal() {
         outDeficit--;
     }
 
-    public boolean Terminado(int inDeficit) {
+    public boolean terminado(int inDeficit) {
         return terminado = (inDeficit == 0);
     }
 
@@ -147,23 +183,13 @@ public class Nodo extends Thread {
     }
 
     boolean hasSucesor(int id) {
-        for (int sucesor : idSucesores) {
-            if (sucesor == id) {
-                return true;
-            }
-        }
-        return false;
+        return idSucesores.contains(id);
     }
 
     boolean hasPredecesor(int id) {
-        for (int predecesor : idPredecesores) {
-            if (predecesor == id) {
-                return true;
-            }
-        }
-        return false;
+        return idPredecesores.contains(id); 
+
     }
-    
     
     @Override
     public void run(){
@@ -188,6 +214,7 @@ public class Nodo extends Thread {
         }
     }
     
+
     protected void trabajo(String mensaje){
         //el trabajo consiste en esperar un tiempo
         int tiempo = Integer.parseInt(mensaje); 
@@ -199,7 +226,24 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Mensaje msg = new Mensaje(-1,"");
+        for (int i = 0; i < trabajo; i++) {
+            for (int sucesor : idSucesores){
+                send("men", sucesor);
+            }
+            
+            while (outDeficit > 0){
+                //mientras me deban mensajes
+                try{
+                    msg = recieve();
+                    //miro si me llegan signals
+                    if (msg.getMsg().equals("signal")){
+                        recieveSignal();
+                    }
+                }catch(Exception e){}
+            }
+        }
+        
     }
 
     private void noEntorno() {

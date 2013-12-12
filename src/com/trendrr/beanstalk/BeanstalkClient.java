@@ -26,8 +26,6 @@ public class BeanstalkClient {
 	protected int port;
 	protected String tube;
 	
-	
-	
 	/**
 	 * these variables are only used in the pool
 	 */

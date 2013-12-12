@@ -25,8 +25,8 @@ public class Grafo {
     private List<Enlace> links; 
 
     public Grafo(String filePath) {
-        nodes = new ArrayList<Integer>();
-        links = new ArrayList<Enlace>();
+        nodes = new ArrayList<>();
+        links = new ArrayList<>();
         try {
             // Open the file that is the first 
             // command line parameter
