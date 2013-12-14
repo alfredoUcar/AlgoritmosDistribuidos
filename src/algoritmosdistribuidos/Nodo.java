@@ -23,8 +23,8 @@ public class Nodo extends Thread {
     final static String HOST = "localhost";
     final static int PORT = 11300;
     final static int RAIZ = 0;
-    
-    private static int numMensajes = 0;    
+
+    private static int numMensajes = 0;
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
     private boolean terminado;
@@ -34,6 +34,7 @@ public class Nodo extends Thread {
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
     private int trabajo;
+    private boolean seguir;
 
     public Nodo(int id) {
         this.id = id;
@@ -44,16 +45,16 @@ public class Nodo extends Thread {
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
         inDeficits = new ArrayList<>();
+        seguir = true;
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
     }
-    
-    //A continuación los métodos que hacen uso del Beanstalk
 
+    //A continuación los métodos que hacen uso del Beanstalk
     /**
-     * 
+     *
      * @param mensaje
-     * @param idRecpetor 
+     * @param idRecpetor
      */
     public void send(String mensaje, int idRecpetor) {
         String message = (tube + ":" + mensaje);
@@ -64,12 +65,11 @@ public class Nodo extends Thread {
         } catch (BeanstalkException ex) {
             Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
-    
+
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     private Mensaje recieve() {
         BeanstalkJob job = null;
@@ -85,18 +85,11 @@ public class Nodo extends Thread {
         } catch (Exception ex) {
             msg = "";
             origen = "-1";
-
         }
-
         return new Mensaje(Integer.parseInt(origen), msg);
     }
-    
-    public void close(){
-        Client.close();
-    }
-    
-    //Hasta aquí Beanstalk
 
+    //Hasta aquí Beanstalk
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
      * la cola de mensajes del nodo a otro nodo especi ficado por id. El
@@ -104,18 +97,17 @@ public class Nodo extends Thread {
      *
      * @param idDestino
      */
-    public void sendMensj(String mensaje, int idReceptor, int myId) {
+    public void sendMensj(String mensaje, int idReceptor) {
         //enviamos el mensaje al nodo indicado
 
-        if (idPadre != -1 || myId == RAIZ) {//solo nodos activos
-            send(mensaje,idReceptor);
+        if (idPadre != -1 || id == RAIZ) {//solo nodos activos
+            send(mensaje, idReceptor);
             outDeficit++;
             numMensajes++;
         }
-
     }
 
-    public void recieveMensj(String mensaje, int idEmisor) {
+    public void recieveMensj(int idEmisor) {
         if (idPadre == -1) {
             idPadre = idEmisor;
             //TODO: hacer algo más??
@@ -125,7 +117,7 @@ public class Nodo extends Thread {
         inDeficit++;
     }
 
-    public boolean sendSignal(/*signal, E, */int myId) {
+    public boolean sendSignal() {
         if (inDeficit > 1) {
             int i;
             for (i = 0; i < inDeficits.size(); i++) {
@@ -135,7 +127,7 @@ public class Nodo extends Thread {
             }
 
             if (i < inDeficits.size()) {
-                sendMensj(SIGNAL, idPredecesores.get(i), id);
+                sendMensj(SIGNAL, idPredecesores.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
                 return true;
@@ -187,15 +179,15 @@ public class Nodo extends Thread {
     }
 
     boolean hasPredecesor(int id) {
-        return idPredecesores.contains(id); 
+        return idPredecesores.contains(id);
 
     }
-    
+
     @Override
-    public void run(){
-        if(id==RAIZ){
+    public void run() {
+        if (id == RAIZ) {
             entorno();
-        }else{
+        } else {
             noEntorno();
         }
     }
@@ -213,11 +205,10 @@ public class Nodo extends Thread {
             inDeficits.add(0);
         }
     }
-    
 
-    protected void trabajo(String mensaje){
+    protected void trabajo(String mensaje) {
         //el trabajo consiste en esperar un tiempo
-        int tiempo = Integer.parseInt(mensaje); 
+        int tiempo = Integer.parseInt(mensaje);
         try {
             Thread.sleep(tiempo);
         } catch (InterruptedException ex) {
@@ -226,29 +217,59 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
-        Mensaje msg = new Mensaje(-1,"");
+        Mensaje msg = new Mensaje(-1, "");
         for (int i = 0; i < trabajo; i++) {
-            for (int sucesor : idSucesores){
+            for (int sucesor : idSucesores) {
                 send("men", sucesor);
             }
-            
-            while (outDeficit > 0){
+
+            while (outDeficit > 0) {
                 //mientras me deban mensajes
-                try{
+                try {
                     msg = recieve();
                     //miro si me llegan signals
-                    if (msg.getMsg().equals("signal")){
+                    if (msg.getMsg().equals(SIGNAL)) {
                         recieveSignal();
                     }
-                }catch(Exception e){}
+                } catch (Exception e) {
+                }
             }
         }
-        
+
     }
 
     private void noEntorno() {
-        for(int sucesor : idSucesores){
-            
+        Mensaje resp;
+        String msg; // Mensaje recibido
+        int origen; // Emisor del mensaje
+
+        while (seguir) {
+            resp = recieve();
+            msg = resp.getMsg();
+            origen = resp.getId();
+
+            switch (msg) {
+                case SIGNAL:    recieveSignal();break;
+                case FIN:
+                    seguir = false;
+                    for (Integer idSucesor : idSucesores) {
+                        sendMensj(msg, idSucesor);
+                    }
+                    break;
+                case "":    sendSignal();break;
+                default:
+                    recieveMensj(origen);
+                    if (idPadre == origen) {
+                        for (int idPredecesor : idPredecesores) {
+                            if (idPredecesor != idPadre) {
+                                sendMensj(msg, idPredecesor);
+                            }
+                        }
+                    }
+                    trabajo(msg);
+                    sendSignal();
+            }
         }
+        Client.close();
     }
 }

@@ -12,12 +12,12 @@ package algoritmosdistribuidos;
  */
 public class Mensaje {
     
-    private int id;
+    private int id; //origen
     private String msg;
 
     public Mensaje(int id, String msg) {
-        this.id = id;
-        this.msg = msg;
+        id = id;
+        msg = msg;
     }
     
     public int getId() {
@@ -26,6 +26,10 @@ public class Mensaje {
 
     public String getMsg() {
         return msg;
+    }
+    
+    public boolean equals(String txt){
+        return (msg == null ? txt == null : msg.equals(txt));
     }
     
 }
