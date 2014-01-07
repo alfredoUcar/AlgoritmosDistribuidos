@@ -155,6 +155,10 @@ public class Nodo extends Thread {
     public int getNodeId() {
         return this.id;
     }
+    
+    public int getPadreId(){
+        return this.idPadre;
+    }
 
     /*Añade un hijo al nodo*/
     public void addSucesor(int idSucesor) {

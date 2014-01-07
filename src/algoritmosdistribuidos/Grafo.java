@@ -22,7 +22,7 @@ public class Grafo {
     static final int RAIZ = 0; //id de la raiz
 //    private List<Nodo> nodes;
     private List<Integer> nodes; //ids
-    private List<Enlace> links; 
+    private List<Enlace> links;
 
     public Grafo(String filePath) {
         nodes = new ArrayList<>();
@@ -54,8 +54,10 @@ public class Grafo {
                     }
                     //añadimos relación
                     //addEnlace(a, b);
-                    Enlace rel = new Enlace(a,b);
-                    if (!existsLink(rel)) links.add(rel);
+                    Enlace rel = new Enlace(a, b);
+                    if (!existsLink(rel)) {
+                        links.add(rel);
+                    }
                 }
             }
             //Close the input stream
@@ -73,36 +75,58 @@ public class Grafo {
     public void print() {
         System.out.println("Grafo:");
         for (Enlace rel : links) {
-                System.out.println(rel.Pre() + " => " + rel.Post());
+            System.out.println(rel.Pre() + " => " + rel.Post());
         }
     }
-    
-    public int size(){
+
+    public int size() {
         return nodes.size();
     }
-    
-    public int getNode(int index){
+
+    public int getNode(int index) {
         return (nodes.get(index));
     }
-    
-    public List<Integer> getSucesoresRaiz(){
+
+    public List<Integer> getSucesoresRaiz() {
         List<Integer> sucesores = new ArrayList<>();
-        for(Enlace e : links){
-            if (e.Pre()==RAIZ) sucesores.add(e.Post());
-        }        
+        for (Enlace e : links) {
+            if (e.Pre() == RAIZ) {
+                sucesores.add(e.Post());
+            }
+        }
         return sucesores;
     }
-    
-    List<Integer> getNodes() {        
+
+    List<Integer> getNodes() {
         return nodes;
     }
-    
-    List<Enlace> getLinks() {        
+
+    List<Enlace> getLinks() {
         return links;
     }
-    
-    public boolean existsLink(Enlace e){
+
+    public boolean existsLink(Enlace e) {
         return links.contains(e);
     }
+
     
+    static List <Enlace> getSpanningTree(Nodo[]nodos){
+        List<Enlace> spanningTree = new ArrayList<>();
+        for(Nodo n : nodos){
+            int idPadre = n.predecesores().isEmpty()? -1 : n.predecesores().get(0); //TODO: cambiar por getidPadre cuando funcione con beanstalk
+            int id = n.getNodeId();
+            if (idPadre != -1 && id != RAIZ){
+                spanningTree.add(new Enlace(idPadre, id));
+            }
+        }
+        return spanningTree;
+    }
+
+    static void printSpanningTree(List<Enlace> enlaces) {
+        System.out.println("Spanning Tree:");
+        for (Enlace rel : enlaces) {
+            System.out.println(rel.Pre() + " => " + rel.Post());
+        }
+    }
+
 }
