@@ -232,7 +232,6 @@ public class Nodo extends Thread {
                 }catch(Exception e){}
             }
         }
-        
     }
 
     private void trabajar() {
