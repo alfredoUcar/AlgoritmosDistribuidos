@@ -38,7 +38,7 @@ public class Nodo extends Thread {
     private int trabajo;
     private boolean seguir;
 
-    public Nodo(int id,List<Integer> entrantes,List<Integer> salientes) {
+    public Nodo(int id, List<Integer> entrantes,List<Integer> salientes) {
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
@@ -115,6 +115,7 @@ public class Nodo extends Thread {
             idPadre = idEmisor;
             //TODO: hacer algo más??
         }
+        System.out.println("tam idPred: "+idPredecesores.size());
         int index = idPredecesores.get(idEmisor);
         idPredecesores.set(index, inDeficits.get(index) + 1);
         inDeficit++;
@@ -255,7 +256,6 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
-            System.out.println("Mensaje: "+msg);
             switch (msg) {
                 case SIGNAL:    recieveSignal();break;
                 case FIN:

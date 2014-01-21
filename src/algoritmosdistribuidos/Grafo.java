@@ -97,7 +97,7 @@ public class Grafo {
         return sucesores;
     }
     
-    public List<Integer> getPredecesores(int id) {
+    public List<Integer> setPredecesores(int id) {
         List<Integer> predecesores = new ArrayList<>();
         for (Enlace e : links) {
             if (e.Post() == id) {
@@ -107,7 +107,7 @@ public class Grafo {
         return predecesores;
     }
     
-    public List<Integer> getSucesores(int id) {
+    public List<Integer> setSucesores(int id) {
         List<Integer> sucesores = new ArrayList<>();
         for (Enlace e : links) {
             if (e.Pre() == id) {
