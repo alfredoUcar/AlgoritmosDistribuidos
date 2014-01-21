@@ -33,10 +33,12 @@ public class Nodo extends Thread {
     private List<Integer> inDeficits;
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
+    private List<Integer> nodosEntrantes;
+    private List<Integer> nodosSalientes; 
     private int trabajo;
     private boolean seguir;
 
-    public Nodo(int id) {
+    public Nodo(int id,List<Integer> entrantes,List<Integer> salientes) {
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
@@ -44,6 +46,8 @@ public class Nodo extends Thread {
         this.terminado = false;
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
+        nodosEntrantes = entrantes;
+        nodosSalientes = salientes;
         inDeficits = new ArrayList<>();
         seguir = true;
         tube = String.valueOf(id);
@@ -58,7 +62,6 @@ public class Nodo extends Thread {
      */
     public void send(String mensaje, int idRecpetor) {
         String message = (tube + ":" + mensaje);
-
         try {
             Client.useTube(String.valueOf(idRecpetor));
             Client.put(1l, 0, 5000, message.getBytes());
@@ -86,7 +89,8 @@ public class Nodo extends Thread {
             msg = "";
             origen = "-1";
         }
-        return new Mensaje(Integer.parseInt(origen), msg);
+        Mensaje msj = new Mensaje(Integer.parseInt(origen), msg);        
+        return msj;
     }
 
     //Hasta aquí Beanstalk
@@ -98,8 +102,7 @@ public class Nodo extends Thread {
      * @param idDestino
      */
     public void sendMensj(String mensaje, int idReceptor) {
-        //enviamos el mensaje al nodo indicado
-
+        //enviamos el mensaje al nodo indicado        
         if (idPadre != -1 || id == RAIZ) {//solo nodos activos
             send(mensaje, idReceptor);
             outDeficit++;
@@ -126,7 +129,7 @@ public class Nodo extends Thread {
                 }
             }
 
-            if (i < inDeficits.size()) {
+            if (i < inDeficits.size()) {                
                 sendMensj(SIGNAL, idPredecesores.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
@@ -221,12 +224,13 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
+        
         Mensaje msg = new Mensaje(-1, "");
-        for (int i = 0; i < trabajo; i++) {
-            for (int sucesor : idSucesores) {
-                send("men", sucesor);
+        for (int i = 0; i < 10; i++) {
+            for (int saliente : nodosSalientes) {
+                sendMensj("50", saliente);
             }
-
+            
             while (outDeficit > 0) {
                 //mientras me deban mensajes
                 try {
@@ -251,7 +255,6 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
-
             switch (msg) {
                 case SIGNAL:    recieveSignal();break;
                 case FIN:
@@ -261,7 +264,7 @@ public class Nodo extends Thread {
                     }
                     break;
                 case "":    sendSignal();break;
-                default:
+                default:                    
                     recieveMensj(origen);
                     if (idPadre == origen) {
                         for (int idPredecesor : idPredecesores) {

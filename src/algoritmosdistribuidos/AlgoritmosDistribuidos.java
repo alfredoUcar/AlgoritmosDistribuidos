@@ -32,7 +32,7 @@ public class AlgoritmosDistribuidos {
         //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
         for (int i=0; i<red.getNodes().size();i++) {
             int id=red.getNodes().get(i);
-            Nodo n = new Nodo(id); //crea el nodo
+            Nodo n = new Nodo(id,red.getPredecesores(i),red.getSucesores(i)); //crea el nodo
             nodos[i]=n; //añadimos el nodo a la lista
         }
         

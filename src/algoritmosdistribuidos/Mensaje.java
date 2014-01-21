@@ -16,8 +16,8 @@ public class Mensaje {
     private String msg;
 
     public Mensaje(int id, String msg) {
-        id = id;
-        msg = msg;
+        this.id = id;
+        this.msg = msg;
     }
     
     public int getId() {

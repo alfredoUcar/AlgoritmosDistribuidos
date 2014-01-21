@@ -96,6 +96,26 @@ public class Grafo {
         }
         return sucesores;
     }
+    
+    public List<Integer> getPredecesores(int id) {
+        List<Integer> predecesores = new ArrayList<>();
+        for (Enlace e : links) {
+            if (e.Post() == id) {
+                predecesores.add(e.Pre());
+            }
+        }
+        return predecesores;
+    }
+    
+    public List<Integer> getSucesores(int id) {
+        List<Integer> sucesores = new ArrayList<>();
+        for (Enlace e : links) {
+            if (e.Pre() == id) {
+                sucesores.add(e.Post());
+            }
+        }
+        return sucesores;
+    }
 
     List<Integer> getNodes() {
         return nodes;
