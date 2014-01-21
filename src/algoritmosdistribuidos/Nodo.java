@@ -255,6 +255,7 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
+            System.out.println("Mensaje: "+msg);
             switch (msg) {
                 case SIGNAL:    recieveSignal();break;
                 case FIN:
@@ -264,7 +265,8 @@ public class Nodo extends Thread {
                     }
                     break;
                 case "":    sendSignal();break;
-                default:                    
+                default:                 
+                    System.out.println("origen: "+origen);
                     recieveMensj(origen);
                     if (idPadre == origen) {
                         for (int idPredecesor : idPredecesores) {
