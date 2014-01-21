@@ -24,7 +24,7 @@ public class AlgoritmosDistribuidos {
         
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
-        Nodo[] nodos = new Nodo[red.size()-1];
+        Nodo[] nodos = new Nodo[red.size()];
         BeanstalkClient Client= new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
         int trabajo = 100; //esperar 100 milisegundos
         int numTrabajos = 10;
@@ -33,18 +33,20 @@ public class AlgoritmosDistribuidos {
         for (int i=0; i<red.getNodes().size();i++) {
             int id=red.getNodes().get(i);
             Nodo n = new Nodo(id); //crea el nodo
-            nodos[i-1]=n; //añadimos el nodo a la lista
+            nodos[i]=n; //añadimos el nodo a la lista
         }
         
         //inicializa los predecesores y sucesores de cada nodo
-        for(Nodo n : nodos){
-            int id=n.getNodeId();
-            for (Enlace e : red.getLinks()){
-                if(id==e.Pre()) n.addSucesor(e.Post()); //relación n->b
-                if(id==e.Post()) n.addPredecesor(e.Pre()); //relación a->n
-            }
-            n.initDeficits();
-        }
+//        for(Nodo n : nodos){
+//            int id=n.getNodeId();
+//            for (Enlace e : red.getLinks()){
+//                if(id==e.Pre()) n.addSucesor(e.Post()); //relación n->b
+//                if(id==e.Post()) n.addPredecesor(e.Pre()); //relación a->n
+//            }
+//            n.initDeficits();
+//        }
+        
+//        Grafo.printSpanningTree(Grafo.getSpanningTree(nodos));
         
         //inicia los hilos
         for (Nodo n : nodos) {
