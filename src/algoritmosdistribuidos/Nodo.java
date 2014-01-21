@@ -111,14 +111,17 @@ public class Nodo extends Thread {
     }
 
     public void recieveMensj(int idEmisor) {
+        System.out.println("idPadre = "+idPadre);
         if (idPadre == -1) {
             idPadre = idEmisor;
             //TODO: hacer algo más??
         }
         System.out.println("tam idPred: "+idPredecesores.size());
-        int index = idPredecesores.get(idEmisor);
-        idPredecesores.set(index, inDeficits.get(index) + 1);
-        inDeficit++;
+        if (!idPredecesores.isEmpty()){
+            int index = idPredecesores.get(idEmisor);
+            idPredecesores.set(index, inDeficits.get(index) + 1);
+            inDeficit++;
+        }
     }
 
     public boolean sendSignal() {
