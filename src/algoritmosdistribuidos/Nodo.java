@@ -267,25 +267,25 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
-            System.out.print("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
+            String header = ("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
             switch (msg) {
                 case SIGNAL:
-                    System.out.println("\t=>\t"+SIGNAL);
+                    System.out.println(header+"\t=>\t"+SIGNAL);
                     recieveSignal();
                     break;
                 case FIN:
-                    System.out.println("\t=>\t"+FIN);
+                    System.out.println(header+"\t=>\t"+FIN);
                     seguir = false;
                     for (Integer idSucesor : idSucesores) {
                         sendMensj(msg, idSucesor);
                     }
                     break;
                 case "":
-                    System.out.println("\t=>\tno hay trabajo");
+                    System.out.println(header+"\t=>\tno hay trabajo");
                     sendSignal();
                     break;
                 default:
-                    System.out.println("\t=>\ttrabaja!");
+                    System.out.println(header+"\t=>\ttrabaja!");
 //                    System.out.println("[#"+id+"]trabajo recibido de #"+origen+" : "+msg);
                     recieveMensj(origen);
                     if (idPadre == origen) {
