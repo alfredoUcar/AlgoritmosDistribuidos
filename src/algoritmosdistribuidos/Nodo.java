@@ -18,8 +18,8 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
-    final static String SIGNAL = "SIGNAL";
-    final static String FIN = "FIN";
+    final static String SIGNAL = "signal";
+    final static String FIN = "fin";
     final static String HOST = "localhost";
     final static int PORT = 11300;
     final static int RAIZ = 0;
@@ -34,11 +34,11 @@ public class Nodo extends Thread {
     private List<Integer> idPredecesores;
     private List<Integer> idSucesores;
     private List<Integer> nodosEntrantes;
-    private List<Integer> nodosSalientes; 
+    private List<Integer> nodosSalientes;
     private int trabajo;
     private boolean seguir;
 
-    public Nodo(int id, List<Integer> entrantes,List<Integer> salientes) {
+    public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
@@ -89,7 +89,8 @@ public class Nodo extends Thread {
             msg = "";
             origen = "-1";
         }
-        Mensaje msj = new Mensaje(Integer.parseInt(origen), msg);        
+
+        Mensaje msj = new Mensaje(Integer.parseInt(origen), msg);
         return msj;
     }
 
@@ -111,13 +112,14 @@ public class Nodo extends Thread {
     }
 
     public void recieveMensj(int idEmisor) {
-        System.out.println("idPadre = "+idPadre);
+//        System.out.println("idPadre = "+idPadre);
         if (idPadre == -1) {
             idPadre = idEmisor;
+            System.out.println("[#" + id + "] asignado el padre #" + idEmisor);
             //TODO: hacer algo más??
         }
-        System.out.println("tam idPred: "+idPredecesores.size());
-        if (!idPredecesores.isEmpty()){
+//        System.out.println("tam idPred: "+idPredecesores.size());
+        if (!idPredecesores.isEmpty()) {
             int index = idPredecesores.get(idEmisor);
             idPredecesores.set(index, inDeficits.get(index) + 1);
             inDeficit++;
@@ -133,7 +135,7 @@ public class Nodo extends Thread {
                 }
             }
 
-            if (i < inDeficits.size()) {                
+            if (i < inDeficits.size()) {
                 sendMensj(SIGNAL, idPredecesores.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
@@ -162,8 +164,8 @@ public class Nodo extends Thread {
     public int getNodeId() {
         return this.id;
     }
-    
-    public int getPadreId(){
+
+    public int getPadreId() {
         return this.idPadre;
     }
 
@@ -228,13 +230,14 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
-        
+
         Mensaje msg = new Mensaje(-1, "");
         for (int i = 0; i < 10; i++) {
             for (int saliente : nodosSalientes) {
-                sendMensj("50", saliente);
+                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + "100");
+                sendMensj("100", saliente);
             }
-            
+
             while (outDeficit > 0) {
                 //mientras me deban mensajes
                 try {
@@ -246,6 +249,11 @@ public class Nodo extends Thread {
                 } catch (Exception e) {
                 }
             }
+            System.out.println("  #### Iteración " + i + " ####");
+//            System.out.println("\ttiempo tardado: " + resultados.get(i).getTiempo() + "ms");
+            System.out.println("\tmensajes enviados: " + numMensajes);
+//            System.out.println("\tGrafo:");
+            numMensajes = 0;
         }
 
     }
@@ -259,25 +267,35 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
+            System.out.print("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
             switch (msg) {
-                case SIGNAL:    recieveSignal();break;
+                case SIGNAL:
+                    System.out.println("\t=>\t"+SIGNAL);
+                    recieveSignal();
+                    break;
                 case FIN:
+                    System.out.println("\t=>\t"+FIN);
                     seguir = false;
                     for (Integer idSucesor : idSucesores) {
                         sendMensj(msg, idSucesor);
                     }
                     break;
-                case "":    sendSignal();break;
-                default:                 
-                    System.out.println("origen: "+origen);
+                case "":
+                    System.out.println("\t=>\tno hay trabajo");
+                    sendSignal();
+                    break;
+                default:
+                    System.out.println("\t=>\ttrabaja!");
+//                    System.out.println("[#"+id+"]trabajo recibido de #"+origen+" : "+msg);
                     recieveMensj(origen);
                     if (idPadre == origen) {
-                        for (int idPredecesor : idPredecesores) {
-                            if (idPredecesor != idPadre) {
-                                sendMensj(msg, idPredecesor);
+                        for (int saliente : nodosSalientes) {
+                            if (saliente != idPadre) {
+                                sendMensj(msg, saliente);
                             }
                         }
                     }
+//                    System.out.println("[#"+id+"] trabajo a realizar: "+msg+" (de #"+origen+")");
                     trabajo(msg);
                     sendSignal();
             }
