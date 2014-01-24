@@ -26,14 +26,14 @@ public class AlgoritmosDistribuidos {
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()];
         BeanstalkClient Client= new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
-        int trabajo = 100; //esperar 100 milisegundos
+        int trabajo = 60; //esperar 100 milisegundos
         int numTrabajos = 10;
 
         //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
         for (int i=0; i<red.getNodes().size();i++) {
             int id=red.getNodes().get(i);
-            Nodo n = new Nodo(id,red.setPredecesores(i),red.setSucesores(i)); //crea el nodo
-            System.out.println("Nodo: "+id+" Añadido predecesor: "+red.setPredecesores(i).toString() +" añadido sucesor: "+ red.setSucesores(i).toString());
+            Nodo n = new Nodo(id,red.getPredecesores(i),red.getSucesores(i)); //crea el nodo
+//            System.out.println("[#"+id+"]  nodos entrantes: "+red.getPredecesores(i).toString() +" nodos salientes: "+ red.getSucesores(i).toString());
             nodos[i]=n; //añadimos el nodo a la lista
         }
         

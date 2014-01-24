@@ -130,11 +130,11 @@ public class Nodo extends Thread {
         if (inDeficit > 1) {
             int i;
             for (i = 0; i < inDeficits.size(); i++) {
-                if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && idPredecesores.get(i) != idPadre)) {
+                System.out.println("send signal a #"+inDeficits.get(i));
+                if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && nodosEntrantes.get(i) != idPadre)) {                    
                     break;
                 }
             }
-
             if (i < inDeficits.size()) {
                 sendMensj(SIGNAL, idPredecesores.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
@@ -232,10 +232,12 @@ public class Nodo extends Thread {
     private void entorno() {
 
         Mensaje msg = new Mensaje(-1, "");
+        String trabajo = "60";
         for (int i = 0; i < 10; i++) {
-            for (int saliente : nodosSalientes) {
-                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + "100");
-                sendMensj("100", saliente);
+            long tiempo = System.currentTimeMillis();
+            for (int saliente : nodosSalientes) {//envía trabajo a todos los nodos salientes                
+                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + trabajo);
+                sendMensj(trabajo, saliente);
             }
 
             while (outDeficit > 0) {
@@ -247,13 +249,21 @@ public class Nodo extends Thread {
                         recieveSignal();
                     }
                 } catch (Exception e) {
+                    System.out.println(e.getStackTrace());
                 }
             }
+            tiempo = System.currentTimeMillis() - tiempo;
             System.out.println("  #### Iteración " + i + " ####");
-//            System.out.println("\ttiempo tardado: " + resultados.get(i).getTiempo() + "ms");
+            System.out.println("\ttiempo tardado: " + tiempo + "ms");
             System.out.println("\tmensajes enviados: " + numMensajes);
 //            System.out.println("\tGrafo:");
             numMensajes = 0;
+        }
+        
+        System.out.println("Mandamos terminar a todos los nodos");
+        // Decimos a todos los nodos que se paren
+        for (int saliente : nodosSalientes) {
+            sendMensj(FIN, saliente);
         }
 
     }
@@ -273,7 +283,7 @@ public class Nodo extends Thread {
                     System.out.println(header+"\t=>\t"+SIGNAL);
                     recieveSignal();
                     break;
-                case FIN:
+                case FIN: //propaga el mensaje de finalizar
                     System.out.println(header+"\t=>\t"+FIN);
                     seguir = false;
                     for (Integer idSucesor : idSucesores) {
