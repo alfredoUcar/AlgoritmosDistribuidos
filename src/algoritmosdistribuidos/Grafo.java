@@ -97,7 +97,7 @@ public class Grafo {
         return sucesores;
     }
     
-    public List<Integer> setPredecesores(int id) {
+    public List<Integer> getPredecesores(int id) {
         List<Integer> predecesores = new ArrayList<>();
         for (Enlace e : links) {
             if (e.Post() == id) {
@@ -105,9 +105,9 @@ public class Grafo {
             }
         }
         return predecesores;
-    }
+    }    
     
-    public List<Integer> setSucesores(int id) {
+    public List<Integer> getSucesores(int id) {
         List<Integer> sucesores = new ArrayList<>();
         for (Enlace e : links) {
             if (e.Pre() == id) {
@@ -129,7 +129,8 @@ public class Grafo {
         return links.contains(e);
     }
 
-    
+    //dado una lista de nodos devuelve la lista de enlaces que representa
+    //el spanning tree
     static List <Enlace> getSpanningTree(Nodo[]nodos){
         List<Enlace> spanningTree = new ArrayList<>();
         for(Nodo n : nodos){
@@ -141,12 +142,16 @@ public class Grafo {
         }
         return spanningTree;
     }
-
+    
     static void printSpanningTree(List<Enlace> enlaces) {
         System.out.println("Spanning Tree:");
         for (Enlace rel : enlaces) {
             System.out.println(rel.Pre() + " => " + rel.Post());
         }
+    }
+    
+    static void printSpanningTree(Nodo[]nodos){
+        printSpanningTree(getSpanningTree(nodos));
     }
 
 }
