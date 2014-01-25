@@ -55,11 +55,8 @@ public class Resultado {
     
     public void printSpanningTree(){
         System.out.println("Spanning Tree:");
-//        for (Enlace rel : spanningTree) {
-//            System.out.println(rel.Pre() + " => " + rel.Post());
-//        }
-        for (int i = 0; i < spanningTree.size(); i++) {
-            System.out.println(spanningTree.get(i).Pre() +"=>"+spanningTree.get(i).Post());
+        for (Enlace rel : spanningTree) {
+            System.out.println(rel.Pre() + " => " + rel.Post());
         }
     }
     
