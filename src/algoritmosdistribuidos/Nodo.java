@@ -36,6 +36,7 @@ public class Nodo extends Thread {
     private List<Integer> nodosEntrantes;
     private List<Integer> nodosSalientes;
     private boolean seguir;
+    private static Resultado resultado = new Resultado();
 
     public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
         this.id = id;
@@ -113,9 +114,9 @@ public class Nodo extends Thread {
             numMensajes++;
             //si es el primer mensaje recibido de este nodo lo añadimos a 
             //nuestros sucesores del spanning tree
-            if (!idSucesores.contains(idReceptor)) {
-                idSucesores.add(idReceptor);
-            }
+//            if (!idSucesores.contains(idReceptor)) {
+//                idSucesores.add(idReceptor);
+//            }
         }
     }
 
@@ -127,9 +128,11 @@ public class Nodo extends Thread {
         }
         //si es el primer mensaje recibido de este nodo lo añadimos a 
         //nuestros predecesores del spanning tree
-        if (!idPredecesores.contains(idEmisor)) {
-            idPredecesores.add(idEmisor);
-        }
+//        if (!idPredecesores.contains(idEmisor)) {
+//            idPredecesores.add(idEmisor);
+//        }
+        //guardamos la relacion en el árbol
+        resultado.insertarRelacion(idEmisor, id);
         
         int index = nodosEntrantes.lastIndexOf(idEmisor);        
         inDeficits.set(index, inDeficits.get(index) + 1);
@@ -240,7 +243,6 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
-
         Mensaje msg = new Mensaje(-1, "");
         String trabajo = "50";
         for (int i = 0; i < 10; i++) {
@@ -266,9 +268,9 @@ public class Nodo extends Thread {
             System.out.println("  #### Iteración " + (i+1) + " ####");
             System.out.println("\ttiempo tardado: " + tiempo + "ms");
             System.out.println("\tmensajes enviados: " + numMensajes+"\n");
-//            System.out.println("\tGrafo:");
+            resultado.printSpanningTree();
             numMensajes=0;
-            reset();
+//            reset();
         }
 
 //        System.out.println("Mandamos terminar a todos los nodos");
@@ -300,7 +302,7 @@ public class Nodo extends Thread {
                     for (Integer saliente : nodosSalientes) {
                         sendMensj(msg, saliente);
                     }
-                    reset();
+//                    reset();
                     break;
                 case "":
 //                    System.out.println(header + "\t=>\tno hay trabajo");
@@ -328,5 +330,9 @@ public class Nodo extends Thread {
     private void reset() {
         idPredecesores.clear();
         idSucesores.clear();
+    }
+    
+    public void imprimirArbol(){
+        
     }
 }
