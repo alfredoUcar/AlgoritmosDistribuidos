@@ -21,47 +21,47 @@ public class AlgoritmosDistribuidos {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        
+
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()];
-        BeanstalkClient Client= new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
+        BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
         int trabajo = 60; //esperar 100 milisegundos
         int numTrabajos = 10;
-
-        //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
-        for (int i=0; i<red.getNodes().size();i++) {
-            int id=red.getNodes().get(i);
-            Nodo n = new Nodo(id,red.getPredecesores(i),red.getSucesores(i)); //crea el nodo
-//            System.out.println("[#"+id+"]  nodos entrantes: "+red.getPredecesores(i).toString() +" nodos salientes: "+ red.getSucesores(i).toString());
-            nodos[i]=n; //añadimos el nodo a la lista
-        }
-        
-        //inicializa los predecesores y sucesores de cada nodo
-//        for(Nodo n : nodos){
-//            int id=n.getNodeId();
-//            for (Enlace e : red.getLinks()){
-//                if(id==e.Pre()) n.addSucesor(e.Post()); //relación n->b
-//                if(id==e.Post()) n.addPredecesor(e.Pre()); //relación a->n
-//            }
-//            n.initDeficits();
-//        }
-        
-//        Grafo.printSpanningTree(Grafo.getSpanningTree(nodos));
-        
-        //inicia los hilos
-        for (Nodo n : nodos) {
-            n.start();
-        }
-
-        //reaper
-        for (Nodo n : nodos) {
-            try {
-                n.join();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(AlgoritmosDistribuidos.class.getName()).log(Level.SEVERE, null, ex);
+        for (int i = 0; i < numTrabajos; i++) {
+            //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
+            for (int j = 0; j < red.getNodes().size(); j++) {
+                int id = red.getNodes().get(j);
+                Nodo n = new Nodo(id, red.getPredecesores(j), red.getSucesores(j)); //crea el nodo
+//                System.out.println("[#" + id + "]  nodos entrantes: " + red.getPredecesores(j).toString() + " nodos salientes: " + red.getSucesores(j).toString());
+                nodos[j] = n; //añadimos el nodo a la lista
             }
+
+            //inicia los hilos
+            for (Nodo n : nodos) {
+                n.start();
+            }
+            
+            long tiempo = -1;
+            int mensajes = 0;
+            //reaper
+            for (Nodo n : nodos) {
+                try {                    
+                    n.join();          
+                    if (n.getNodeId()==Grafo.RAIZ) tiempo = n.getTime();
+                    mensajes+=n.getNumMensajes();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AlgoritmosDistribuidos.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            System.out.println("  #### Iteración " + (i + 1) + " ####");
+                System.out.println("\ttiempo tardado: " + tiempo + "ms");
+                System.out.println("\tmensajes enviados: " + mensajes + "\n");
+                Grafo.printSpanningTree(nodos);
+                System.out.print("\n");
         }
-    }    
+
+    }
 
 }
