@@ -75,7 +75,7 @@ public class Grafo {
     public void print() {
         System.out.println("Grafo:");
         for (Enlace rel : links) {
-            System.out.println(rel.Pre() + " => " + rel.Post());
+            System.out.println(rel.Pre() + " -> " + rel.Post());
         }
     }
 
@@ -143,15 +143,17 @@ public class Grafo {
         return spanningTree;
     }
     
-    static void printSpanningTree(List<Enlace> enlaces) {
-        System.out.println("Spanning Tree:");
+    static String spanningTreeStr(List<Enlace> enlaces) {
+        String res = "";
+        res += "Spanning Tree:\n";
         for (Enlace rel : enlaces) {
-            System.out.println(rel.Pre() + " => " + rel.Post());
+            res += "\t"+(rel.Pre() + " -> " + rel.Post()+"\n");
         }
+        return res+="\n";
     }
     
-    static void printSpanningTree(Nodo[]nodos){
-        printSpanningTree(getSpanningTree(nodos));
+    static String spanningTreeStr(Nodo[]nodos){
+        return spanningTreeStr(getSpanningTree(nodos));
     }
 
 }

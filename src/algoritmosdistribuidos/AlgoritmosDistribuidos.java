@@ -24,6 +24,9 @@ public class AlgoritmosDistribuidos {
      */
     public static void main(String[] args) throws IOException {
 
+        FileWriter output = new FileWriter("iteraciones.txt");
+        BufferedWriter writer = new BufferedWriter(output);
+        
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()];
@@ -56,15 +59,17 @@ public class AlgoritmosDistribuidos {
                     Logger.getLogger(AlgoritmosDistribuidos.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            FileWriter output = new FileWriter("output"+i+".txt");
-            BufferedWriter writer = new BufferedWriter(output);
             
-            System.out.println("  #### Iteración " + (i + 1) + " ####");
-                System.out.println("\ttiempo tardado: " + tiempo + "ms");
-                System.out.println("\tmensajes enviados: " + mensajes + "\n");
-                Grafo.printSpanningTree(nodos);
-                System.out.print("\n");
+            writer.write("#### Iteración " + (i + 1) + " ####\n");
+            writer.write("tiempo tardado: " + tiempo + "ms");
+            writer.write("mensajes enviados: " + mensajes + "\n");
+            writer.write(Grafo.spanningTreeStr(nodos));
         }
+        
+        writer.close();
+        output.close();
+        
+        System.out.println("Guardados resultados en el fichero");
 
     }
 
