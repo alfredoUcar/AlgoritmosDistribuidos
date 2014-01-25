@@ -129,7 +129,8 @@ public class Grafo {
         return links.contains(e);
     }
 
-    
+    //dado una lista de nodos devuelve la lista de enlaces que representa
+    //el spanning tree
     static List <Enlace> getSpanningTree(Nodo[]nodos){
         List<Enlace> spanningTree = new ArrayList<>();
         for(Nodo n : nodos){
@@ -141,12 +142,16 @@ public class Grafo {
         }
         return spanningTree;
     }
-
+    
     static void printSpanningTree(List<Enlace> enlaces) {
         System.out.println("Spanning Tree:");
         for (Enlace rel : enlaces) {
             System.out.println(rel.Pre() + " => " + rel.Post());
         }
+    }
+    
+    static void printSpanningTree(Nodo[]nodos){
+        printSpanningTree(getSpanningTree(nodos));
     }
 
 }

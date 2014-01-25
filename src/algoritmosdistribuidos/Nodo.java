@@ -35,7 +35,6 @@ public class Nodo extends Thread {
     private List<Integer> idSucesores;
     private List<Integer> nodosEntrantes;
     private List<Integer> nodosSalientes;
-    private int trabajo;
     private boolean seguir;
 
     public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
@@ -48,10 +47,14 @@ public class Nodo extends Thread {
         idSucesores = new ArrayList<>();
         nodosEntrantes = entrantes;
         nodosSalientes = salientes;
-        inDeficits = new ArrayList<>();
         seguir = true;
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
+        inDeficits = new ArrayList<Integer>(nodosEntrantes.size());
+        // Llenamos de 0 el array
+        for (Integer i : nodosEntrantes) {            
+            inDeficits.add(0);
+        }
     }
 
     //A continuación los métodos que hacen uso del Beanstalk
@@ -108,6 +111,11 @@ public class Nodo extends Thread {
             send(mensaje, idReceptor);
             outDeficit++;
             numMensajes++;
+            //si es el primer mensaje recibido de este nodo lo añadimos a 
+            //nuestros sucesores del spanning tree
+            if (!idSucesores.contains(idReceptor)) {
+                idSucesores.add(idReceptor);
+            }
         }
     }
 
@@ -115,28 +123,30 @@ public class Nodo extends Thread {
 //        System.out.println("idPadre = "+idPadre);
         if (idPadre == -1) {
             idPadre = idEmisor;
-            System.out.println("[#" + id + "] asignado el padre #" + idEmisor);
-            //TODO: hacer algo más??
+//            System.out.println("[#" + id + "] asignado el padre #" + idEmisor);
         }
-//        System.out.println("tam idPred: "+idPredecesores.size());
-        if (!idPredecesores.isEmpty()) {
-            int index = idPredecesores.get(idEmisor);
-            idPredecesores.set(index, inDeficits.get(index) + 1);
-            inDeficit++;
+        //si es el primer mensaje recibido de este nodo lo añadimos a 
+        //nuestros predecesores del spanning tree
+        if (!idPredecesores.contains(idEmisor)) {
+            idPredecesores.add(idEmisor);
         }
+        
+        int index = nodosEntrantes.lastIndexOf(idEmisor);        
+        inDeficits.set(index, inDeficits.get(index) + 1);
+        inDeficit++;
     }
 
     public boolean sendSignal() {
         if (inDeficit > 1) {
             int i;
             for (i = 0; i < inDeficits.size(); i++) {
-                System.out.println("send signal a #"+inDeficits.get(i));
-                if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && nodosEntrantes.get(i) != idPadre)) {                    
+//                System.out.println("send signal a #" + inDeficits.get(i));
+                if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && nodosEntrantes.get(i) != idPadre)) {
                     break;
                 }
             }
             if (i < inDeficits.size()) {
-                sendMensj(SIGNAL, idPredecesores.get(i));
+                sendMensj(SIGNAL, nodosEntrantes.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
                 return true;
@@ -144,7 +154,7 @@ public class Nodo extends Thread {
             return false;
         } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
             send(SIGNAL, idPadre);
-            inDeficits.set(inDeficits.indexOf(idPadre), 0);
+            inDeficits.set(inDeficits.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
             inDeficit = 0;
             idPadre = -1;
             return true;
@@ -232,11 +242,11 @@ public class Nodo extends Thread {
     private void entorno() {
 
         Mensaje msg = new Mensaje(-1, "");
-        String trabajo = "60";
+        String trabajo = "50";
         for (int i = 0; i < 10; i++) {
             long tiempo = System.currentTimeMillis();
             for (int saliente : nodosSalientes) {//envía trabajo a todos los nodos salientes                
-                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + trabajo);
+//                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + trabajo);
                 sendMensj(trabajo, saliente);
             }
 
@@ -253,14 +263,15 @@ public class Nodo extends Thread {
                 }
             }
             tiempo = System.currentTimeMillis() - tiempo;
-            System.out.println("  #### Iteración " + i + " ####");
+            System.out.println("  #### Iteración " + (i+1) + " ####");
             System.out.println("\ttiempo tardado: " + tiempo + "ms");
-            System.out.println("\tmensajes enviados: " + numMensajes);
+            System.out.println("\tmensajes enviados: " + numMensajes+"\n");
 //            System.out.println("\tGrafo:");
-            numMensajes = 0;
+            numMensajes=0;
+            reset();
         }
-        
-        System.out.println("Mandamos terminar a todos los nodos");
+
+//        System.out.println("Mandamos terminar a todos los nodos");
         // Decimos a todos los nodos que se paren
         for (int saliente : nodosSalientes) {
             sendMensj(FIN, saliente);
@@ -277,25 +288,26 @@ public class Nodo extends Thread {
             resp = recieve();
             msg = resp.getMsg();
             origen = resp.getId();
-            String header = ("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
+//            String header = ("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
             switch (msg) {
                 case SIGNAL:
-                    System.out.println(header+"\t=>\t"+SIGNAL);
+//                    System.out.println(header + "\t=>\t" + SIGNAL);
                     recieveSignal();
                     break;
                 case FIN: //propaga el mensaje de finalizar
-                    System.out.println(header+"\t=>\t"+FIN);
+//                    System.out.println(header + "\t=>\t" + FIN);
                     seguir = false;
-                    for (Integer idSucesor : idSucesores) {
-                        sendMensj(msg, idSucesor);
+                    for (Integer saliente : nodosSalientes) {
+                        sendMensj(msg, saliente);
                     }
+                    reset();
                     break;
                 case "":
-                    System.out.println(header+"\t=>\tno hay trabajo");
+//                    System.out.println(header + "\t=>\tno hay trabajo");
                     sendSignal();
                     break;
                 default:
-                    System.out.println(header+"\t=>\ttrabaja!");
+//                    System.out.println(header + "\t=>\ttrabaja!");
 //                    System.out.println("[#"+id+"]trabajo recibido de #"+origen+" : "+msg);
                     recieveMensj(origen);
                     if (idPadre == origen) {
@@ -310,6 +322,12 @@ public class Nodo extends Thread {
                     sendSignal();
             }
         }
+        seguir=true;
         Client.close();
+    }
+
+    private void reset() {
+        idPredecesores.clear();
+        idSucesores.clear();
     }
 }
