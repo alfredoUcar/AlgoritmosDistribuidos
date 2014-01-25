@@ -31,9 +31,9 @@ public class AlgoritmosDistribuidos {
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()];
         BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
-        int trabajo = 60; //esperar 100 milisegundos
-        int numTrabajos = 10;
-        for (int i = 0; i < numTrabajos; i++) {
+        int iteraciones = 10;
+        System.out.println("Empezando las "+iteraciones+" iteraciones");
+        for (int i = 0; i < iteraciones; i++) {            
             //crea hilos de la red, salvo la raiz que es el proceso en el que nos encontramos(entorno)
             for (int j = 0; j < red.getNodes().size(); j++) {
                 int id = red.getNodes().get(j);
