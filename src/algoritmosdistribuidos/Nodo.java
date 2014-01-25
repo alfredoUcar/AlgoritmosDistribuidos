@@ -35,6 +35,7 @@ public class Nodo extends Thread {
     private List<Integer> idSucesores;
     private List<Integer> nodosEntrantes;
     private List<Integer> nodosSalientes;
+    private static List<Enlace> spanningTree;
     private boolean seguir;
 
     public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
@@ -45,6 +46,7 @@ public class Nodo extends Thread {
         this.terminado = false;
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
+        spanningTree = new ArrayList<>();
         nodosEntrantes = entrantes;
         nodosSalientes = salientes;
         seguir = true;
@@ -52,7 +54,7 @@ public class Nodo extends Thread {
         Client = new BeanstalkClient(HOST, PORT, tube);
         inDeficits = new ArrayList<Integer>(nodosEntrantes.size());
         // Llenamos de 0 el array
-        for (Integer i : nodosEntrantes) {            
+        for (Integer i : nodosEntrantes) {
             inDeficits.add(0);
         }
     }
@@ -130,10 +132,14 @@ public class Nodo extends Thread {
         if (!idPredecesores.contains(idEmisor)) {
             idPredecesores.add(idEmisor);
         }
-        
-        int index = nodosEntrantes.lastIndexOf(idEmisor);        
-        inDeficits.set(index, inDeficits.get(index) + 1);
-        inDeficit++;
+        try {
+            int index = nodosEntrantes.lastIndexOf(idEmisor);
+            inDeficits.set(index, inDeficits.get(index) + 1);
+            inDeficit++;
+        } catch (Exception e) {
+            System.out.println("Error en #" + id + ", no se pudo recibir mensaje de #" + idEmisor + ":\n\t"
+                    + "def size: " + inDeficits.size() + " | entr size: " + nodosEntrantes.size());
+        }
     }
 
     public boolean sendSignal() {
@@ -152,9 +158,9 @@ public class Nodo extends Thread {
                 return true;
             }
             return false;
-        } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
+        } else if ((inDeficit == 1) && (outDeficit == 0)) {
             send(SIGNAL, idPadre);
-            inDeficits.set(inDeficits.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
+            inDeficits.set(nodosEntrantes.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
             inDeficit = 0;
             idPadre = -1;
             return true;
@@ -262,13 +268,22 @@ public class Nodo extends Thread {
                     System.out.println(e.getStackTrace());
                 }
             }
+            
+            System.out.println("[#" + id + "] before update ST: " + spanningTree.size());
+            for (Integer suc : idSucesores) {
+                spanningTree.add(new Enlace(id, suc));
+            }
+            System.out.println("[#" + id + "] after update ST: " + spanningTree.size());
+            
             tiempo = System.currentTimeMillis() - tiempo;
-            System.out.println("  #### Iteración " + (i+1) + " ####");
+            System.out.println("  #### Iteración " + (i + 1) + " ####");
             System.out.println("\ttiempo tardado: " + tiempo + "ms");
-            System.out.println("\tmensajes enviados: " + numMensajes+"\n");
+            System.out.println("\tmensajes enviados: " + numMensajes + "\n");
 //            System.out.println("\tGrafo:");
-            numMensajes=0;
-            reset();
+            Grafo.printSpanningTree(spanningTree);
+            System.out.print("\n");
+            numMensajes = 0;
+            spanningTree = new ArrayList<>(); //reset spanning tree
         }
 
 //        System.out.println("Mandamos terminar a todos los nodos");
@@ -300,7 +315,6 @@ public class Nodo extends Thread {
                     for (Integer saliente : nodosSalientes) {
                         sendMensj(msg, saliente);
                     }
-                    reset();
                     break;
                 case "":
 //                    System.out.println(header + "\t=>\tno hay trabajo");
@@ -319,15 +333,17 @@ public class Nodo extends Thread {
                     }
 //                    System.out.println("[#"+id+"] trabajo a realizar: "+msg+" (de #"+origen+")");
                     trabajo(msg);
-                    sendSignal();
+                    boolean res = sendSignal();
+                    System.out.println("[#" + id + "] before update ST: " + spanningTree.size());
+                    for (Integer suc : idSucesores) {
+                        spanningTree.add(new Enlace(id, suc));
+                        System.out.println("ST: " + id + " -> " + suc);
+                    }
+                    System.out.println("[#" + id + "] after update ST: " + spanningTree.size());
             }
         }
-        seguir=true;
+        seguir = true;
         Client.close();
     }
 
-    private void reset() {
-        idPredecesores.clear();
-        idSucesores.clear();
-    }
 }
