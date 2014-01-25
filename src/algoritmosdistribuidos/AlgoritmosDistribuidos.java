@@ -6,7 +6,9 @@
 package algoritmosdistribuidos;
 
 import com.trendrr.beanstalk.BeanstalkClient;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,6 +56,8 @@ public class AlgoritmosDistribuidos {
                     Logger.getLogger(AlgoritmosDistribuidos.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            FileWriter output = new FileWriter("output"+i+".txt");
+            BufferedWriter writer = new BufferedWriter(output);
             
             System.out.println("  #### Iteración " + (i + 1) + " ####");
                 System.out.println("\ttiempo tardado: " + tiempo + "ms");
