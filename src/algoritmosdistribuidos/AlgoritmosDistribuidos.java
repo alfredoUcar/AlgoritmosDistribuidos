@@ -25,9 +25,6 @@ public class AlgoritmosDistribuidos {
         CustomLogger log = new CustomLogger(new File("/users/algoritmos_distribuidos.log"));
         Grafo red = new Grafo("graph.dot");
         Nodo[] nodos = new Nodo[red.size()];
-<<<<<<< HEAD
-        BeanstalkClient Client= new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
-=======
         BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Nodo.RAIZ));
         int trabajo = 60; //esperar 100 milisegundos
         int numTrabajos = 10;
@@ -39,7 +36,6 @@ public class AlgoritmosDistribuidos {
 //                System.out.println("[#" + id + "]  nodos entrantes: " + red.getPredecesores(j).toString() + " nodos salientes: " + red.getSucesores(j).toString());
                 nodos[j] = n; //añadimos el nodo a la lista
             }
->>>>>>> pruebas
 
             //inicia los hilos
             for (Nodo n : nodos) {
