@@ -322,7 +322,6 @@ public class Nodo extends Thread {
                     sendSignal();
             }
         }
-        seguir=true;
         Client.close();
     }
 
