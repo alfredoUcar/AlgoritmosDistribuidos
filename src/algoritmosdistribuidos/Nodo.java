@@ -255,7 +255,6 @@ public class Nodo extends Thread {
     }
 
     private void entorno() {
-        Mensaje msg = new Mensaje(-1, "");
         String trabajo = "50";
         tiempo = System.currentTimeMillis();
         for (int i = 0; i < 1; i++) {
