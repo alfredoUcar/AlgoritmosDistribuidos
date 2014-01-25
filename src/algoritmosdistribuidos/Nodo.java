@@ -9,6 +9,7 @@ import com.trendrr.beanstalk.BeanstalkClient;
 import com.trendrr.beanstalk.BeanstalkException;
 import com.trendrr.beanstalk.BeanstalkJob;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.*;
 
@@ -24,10 +25,10 @@ public class Nodo extends Thread {
     final static int PORT = 11300;
     final static int RAIZ = 0;
 
-    private static int numMensajes = 0;
+    private int numMensajes;
     private int id, inDeficit, outDeficit;
     private int idPadre = -1;
-    private boolean terminado;
+//    private boolean terminado;
     private BeanstalkClient Client;
     private String tube;
     private List<Integer> inDeficits;
@@ -36,14 +37,19 @@ public class Nodo extends Thread {
     private List<Integer> nodosEntrantes;
     private List<Integer> nodosSalientes;
     private boolean seguir;
+<<<<<<< HEAD
     private static Resultado resultado = new Resultado();
+=======
+    private long tiempo;
+>>>>>>> pruebas
 
     public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
         this.id = id;
         this.inDeficit = 0;
         this.outDeficit = 0;
         this.idPadre = -1;
-        this.terminado = false;
+//        this.terminado = false;
+        numMensajes = 0;
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
         nodosEntrantes = entrantes;
@@ -53,7 +59,7 @@ public class Nodo extends Thread {
         Client = new BeanstalkClient(HOST, PORT, tube);
         inDeficits = new ArrayList<Integer>(nodosEntrantes.size());
         // Llenamos de 0 el array
-        for (Integer i : nodosEntrantes) {            
+        for (Integer i : nodosEntrantes) {
             inDeficits.add(0);
         }
     }
@@ -128,6 +134,7 @@ public class Nodo extends Thread {
         }
         //si es el primer mensaje recibido de este nodo lo añadimos a 
         //nuestros predecesores del spanning tree
+<<<<<<< HEAD
 //        if (!idPredecesores.contains(idEmisor)) {
 //            idPredecesores.add(idEmisor);
 //        }
@@ -137,6 +144,19 @@ public class Nodo extends Thread {
         int index = nodosEntrantes.lastIndexOf(idEmisor);        
         inDeficits.set(index, inDeficits.get(index) + 1);
         inDeficit++;
+=======
+        if (!idPredecesores.contains(idEmisor)) {
+            idPredecesores.add(idEmisor);
+        }
+        try {
+            int index = nodosEntrantes.lastIndexOf(idEmisor);
+            inDeficits.set(index, inDeficits.get(index) + 1);
+            inDeficit++;
+        } catch (Exception e) {
+            System.out.println("Error en #" + id + ", no se pudo recibir mensaje de #" + idEmisor + ":\n\t"
+                    + "def size: " + inDeficits.size() + " | entr size: " + nodosEntrantes.size());
+        }
+>>>>>>> pruebas
     }
 
     public boolean sendSignal() {
@@ -155,9 +175,9 @@ public class Nodo extends Thread {
                 return true;
             }
             return false;
-        } else if ((inDeficit == 1) && (terminado) && (outDeficit == 0)) {
+        } else if ((inDeficit == 1) && (outDeficit == 0)) {
             send(SIGNAL, idPadre);
-            inDeficits.set(inDeficits.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
+            inDeficits.set(nodosEntrantes.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
             inDeficit = 0;
             idPadre = -1;
             return true;
@@ -169,9 +189,9 @@ public class Nodo extends Thread {
         outDeficit--;
     }
 
-    public boolean terminado(int inDeficit) {
-        return terminado = (inDeficit == 0);
-    }
+//    public boolean terminado(int inDeficit) {
+//        return terminado = (inDeficit == 0);
+//    }
 
     //devuelve el identificador del nodo
     public int getNodeId() {
@@ -207,6 +227,14 @@ public class Nodo extends Thread {
     boolean hasPredecesor(int id) {
         return idPredecesores.contains(id);
 
+    }
+    
+    long getTime(){
+        return tiempo;
+    }
+    
+    int getNumMensajes(){
+        return numMensajes;
     }
 
     @Override
@@ -245,8 +273,9 @@ public class Nodo extends Thread {
     private void entorno() {
         Mensaje msg = new Mensaje(-1, "");
         String trabajo = "50";
-        for (int i = 0; i < 10; i++) {
-            long tiempo = System.currentTimeMillis();
+        tiempo = System.currentTimeMillis();
+        for (int i = 0; i < 1; i++) {
+            
             for (int saliente : nodosSalientes) {//envía trabajo a todos los nodos salientes                
 //                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + trabajo);
                 sendMensj(trabajo, saliente);
@@ -264,6 +293,7 @@ public class Nodo extends Thread {
                     System.out.println(e.getStackTrace());
                 }
             }
+<<<<<<< HEAD
             tiempo = System.currentTimeMillis() - tiempo;
             System.out.println("  #### Iteración " + (i+1) + " ####");
             System.out.println("\ttiempo tardado: " + tiempo + "ms");
@@ -271,8 +301,12 @@ public class Nodo extends Thread {
             resultado.printSpanningTree();
             numMensajes=0;
 //            reset();
+=======
+            
+         
+>>>>>>> pruebas
         }
-
+        tiempo = System.currentTimeMillis()-tiempo;
 //        System.out.println("Mandamos terminar a todos los nodos");
         // Decimos a todos los nodos que se paren
         for (int saliente : nodosSalientes) {
@@ -302,7 +336,10 @@ public class Nodo extends Thread {
                     for (Integer saliente : nodosSalientes) {
                         sendMensj(msg, saliente);
                     }
+<<<<<<< HEAD
 //                    reset();
+=======
+>>>>>>> pruebas
                     break;
                 case "":
 //                    System.out.println(header + "\t=>\tno hay trabajo");
@@ -324,6 +361,7 @@ public class Nodo extends Thread {
                     sendSignal();
             }
         }
+<<<<<<< HEAD
         Client.close();
     }
 
@@ -335,4 +373,10 @@ public class Nodo extends Thread {
     public void imprimirArbol(){
         
     }
+=======
+        seguir = true;
+        Client.close();
+    }
+
+>>>>>>> pruebas
 }
