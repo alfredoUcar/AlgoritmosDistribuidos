@@ -19,24 +19,30 @@ import java.util.logging.*;
  */
 public class Nodo extends Thread {
 
-    final static String SIGNAL = "signal";
-    final static String FIN = "fin";
+    //configuración beanstalkd
     final static String HOST = "localhost";
     final static int PORT = 11300;
-    final static int RAIZ = 0;
+    private final BeanstalkClient Client;
+    private final String tube;
+    //mensajes
+    final static String SIGNAL = "signal";
+    final static String FIN = "fin";
+    final static String TRABAJO = "100";
 
-    private int numMensajes;
-    private int id, inDeficit, outDeficit;
-    private int idPadre = -1;
-//    private boolean terminado;
-    private BeanstalkClient Client;
-    private String tube;
-    private List<Integer> inDeficits;
-    private List<Integer> idPredecesores;
-    private List<Integer> idSucesores;
-    private List<Integer> nodosEntrantes;
-    private List<Integer> nodosSalientes;
-    private boolean seguir;
+    final static int RAIZ = 0;  //ID asociado a la raiz o entorno
+    private boolean seguir; // flag para los nodos 'no entorno'
+
+    private final int id;
+    private int idPadre;
+    private int inDeficit, outDeficit;
+
+    private final List<Integer> nodosEntrantes; //nodos de los que puede recibir mensajes
+    private final List<Integer> nodosSalientes; //nodos a los que puede enviar mensajes 
+    private List<Integer> inDeficits; //contador de in deficits de cada nodo entrante
+
+    private final List<Integer> idPredecesores; //nodos de los que ha recibido algún mensaje
+    private final List<Integer> idSucesores; //nodos a los que ha enviado algún mensaje
+    private int mensajesEnviados;
     private long tiempo;
 
     public Nodo(int id, List<Integer> entrantes, List<Integer> salientes) {
@@ -44,8 +50,7 @@ public class Nodo extends Thread {
         this.inDeficit = 0;
         this.outDeficit = 0;
         this.idPadre = -1;
-//        this.terminado = false;
-        numMensajes = 0;
+        mensajesEnviados = 0;
         idPredecesores = new ArrayList<>();
         idSucesores = new ArrayList<>();
         nodosEntrantes = entrantes;
@@ -53,23 +58,72 @@ public class Nodo extends Thread {
         seguir = true;
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
-        inDeficits = new ArrayList<Integer>(nodosEntrantes.size());
-        // Llenamos de 0 el array
-        for (Integer i : nodosEntrantes) {
-            inDeficits.add(0);
+        initIncomingDeficits();
+    }
+    
+    
+    @Override
+    public void run() {
+        if (id == RAIZ) {
+            entorno();
+        } else {
+            noEntorno();
         }
     }
+    
+    //acciones llevadas a cabo por el nodo raiz 
+    private void entorno() {
+        Mensaje msg;
+        tiempo = System.currentTimeMillis(); //inicia el tiempo
 
-    //A continuación los métodos que hacen uso del Beanstalk
+        mandarTrabajo(TRABAJO);
+
+        while (outDeficit > 0) {//mientras me falten signals por recibir           
+            comprobarSignals();
+        }
+
+        tiempo = System.currentTimeMillis() - tiempo; //detiene el tiempo
+        finalizar();
+
+    }
+    
+    //acciones llevadas a cabo por cualquier nodo que no sea raiz
+    private void noEntorno() {
+
+        while (seguir) {
+            Mensaje msg = recieve();
+            String contenido = msg.getMsg();
+            int origen = msg.getId();
+            switch (contenido) {//procesa el mensaje recibido
+                case SIGNAL:
+                    recieveSignal();
+                    break;
+                case FIN: //propaga el mensaje de finalizar
+                    finalizar();
+                    break;
+                default: //se trata de un trabajo
+                    procesarTrabajo(origen, contenido);
+            }
+        }
+        Client.close();
+    }
+
     /**
-     *
-     * @param mensaje
-     * @param idRecpetor
+     * **********************************************************
+     * FUNCIONES QUE HACEN USO DEL BEANSTALKD
+     * **********************************************************
      */
-    public void send(String mensaje, int idRecpetor) {
+    /**
+     * envía el mensaje a la tubería del receptor
+     *
+     * @param mensaje información que se desea transmitir
+     * @param idRecepetor nodo destinatario
+     */
+    public void send(String mensaje, int idRecepetor) {
+        //codifica el origen en el mensaje para ser identificado por el destinatario
         String message = (tube + ":" + mensaje);
         try {
-            Client.useTube(String.valueOf(idRecpetor));
+            Client.useTube(String.valueOf(idRecepetor));
             Client.put(1l, 0, 5000, message.getBytes());
         } catch (BeanstalkException ex) {
             Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
@@ -77,124 +131,133 @@ public class Nodo extends Thread {
     }
 
     /**
+     * Obtiene el mensaje de su tubería
      *
-     * @return
+     * @return mensaje parseado
      */
     private Mensaje recieve() {
-        BeanstalkJob job = null;
-        String message;
+        BeanstalkJob job;
+        String[] message;
         String origen;
-        String msg;
+        String contenido;
         try {
             Client.useTube(tube);
             job = Client.reserve(1);
-            message = new String(job.getData());
-            msg = message.split(":")[1];
-            origen = message.split(":")[0];
-        } catch (Exception ex) {
-            msg = "";
+            message = new String(job.getData()).split(":"); //separa el origen del contenido
+            origen = message[0];
+            contenido = message[1];
+        } catch (BeanstalkException ex) {
+            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
+            contenido = "";
             origen = "-1";
         }
 
-        Mensaje msj = new Mensaje(Integer.parseInt(origen), msg);
+        Mensaje msj = new Mensaje(Integer.parseInt(origen), contenido);
         return msj;
     }
 
-    //Hasta aquí Beanstalk
+    /**
+     * **********************************************************
+     * FUNCIONES PARA COMUNICARSE CON OTROS NODOS
+     * **********************************************************
+     */
     /**
      * Método para enviar un mensaje de un nodo a otro. Se envía un mensaje de
-     * la cola de mensajes del nodo a otro nodo especi ficado por id. El
+     * la cola de mensajes del nodo a otro nodo especificado por id. El
      * outDeficit del nodo emisor aumenta.
      *
-     * @param idDestino
+     * @param mensaje
+     * @param idReceptor
      */
-    public void sendMensj(String mensaje, int idReceptor) {
-        //enviamos el mensaje al nodo indicado        
-        if (idPadre != -1 || id == RAIZ) {//solo nodos activos
+    public void sendMessage(String mensaje, int idReceptor) {
+        if (idPadre != -1 || id == RAIZ) {//si está activo
             send(mensaje, idReceptor);
             outDeficit++;
-            numMensajes++;
-            //si es el primer mensaje recibido de este nodo lo añadimos a 
-            //nuestros sucesores del spanning tree
-//            if (!idSucesores.contains(idReceptor)) {
-//                idSucesores.add(idReceptor);
-//            }
+            mensajesEnviados++;
+            addSucesor(idReceptor);
         }
     }
 
-    public void recieveMensj(int idEmisor) {
-//        System.out.println("idPadre = "+idPadre);
+    /**
+     * Método para recibir un mensaje de otro nodo. Recoge el primer mensaje en
+     * la cola de la tubería. Incrementa el inDeficit.
+     *
+     * @param idEmisor
+     */
+    public void recieveMessage(int idEmisor) {
         if (idPadre == -1) {
+            //es el primer mensaje que recibe y asigna su emisor como el padre
             idPadre = idEmisor;
-//            System.out.println("[#" + id + "] asignado el padre #" + idEmisor);
         }
-        //si es el primer mensaje recibido de este nodo lo añadimos a 
-        //nuestros predecesores del spanning tree
-        if (!idPredecesores.contains(idEmisor)) {
-            idPredecesores.add(idEmisor);
-        }
+
+        addPredecesor(idEmisor);
+
         try {
             int index = nodosEntrantes.lastIndexOf(idEmisor);
-            inDeficits.set(index, inDeficits.get(index) + 1);
+            inDeficits.set(index, inDeficits.get(index) + 1); //inDeficit para ese nodo
             inDeficit++;
         } catch (Exception e) {
-            System.out.println("Error en #" + id + ", no se pudo recibir mensaje de #" + idEmisor + ":\n\t"
-                    + "def size: " + inDeficits.size() + " | entr size: " + nodosEntrantes.size());
+            String error = "Error en #" + id + ", no se pudo actualizar el inDeficit de #" + idEmisor + ": "
+                    + e.getMessage();
+            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, error);
+
         }
     }
 
     public boolean sendSignal() {
-        if (inDeficit > 1) {
+        if (inDeficit > 1) {//si no es el último signal...
             int i;
             for (i = 0; i < inDeficits.size(); i++) {
-//                System.out.println("send signal a #" + inDeficits.get(i));
                 if ((inDeficits.get(i) > 1) || (inDeficits.get(i) == 1 && nodosEntrantes.get(i) != idPadre)) {
-                    break;
+                    break; //encontrado inDeficit para decrementar
                 }
             }
+
             if (i < inDeficits.size()) {
-                sendMensj(SIGNAL, nodosEntrantes.get(i));
+                sendMessage(SIGNAL, nodosEntrantes.get(i));
                 inDeficits.set(i, inDeficits.get(i) - 1);
                 inDeficit--;
                 return true;
             }
             return false;
-        } else if ((inDeficit == 1) && (outDeficit == 0)) {
-            send(SIGNAL, idPadre);
-            inDeficits.set(nodosEntrantes.indexOf(idPadre), 0); //si falla probar nodosEntrantes.index...
+        } else if ((inDeficit == 1) && (outDeficit == 0)) {//último signal
+            send(SIGNAL, idPadre); //envía el signal al padre
+            inDeficits.set(nodosEntrantes.indexOf(idPadre), 0);
             inDeficit = 0;
             idPadre = -1;
             return true;
         }
         return false;
     }
+    
+    /**
+     * función del nodo entorno que comprueba si ha recibido algún signal
+     */
+    private void comprobarSignals() {
+        try {
+            //miro si me llegan signals
+            if (recieve().getMsg().equals(SIGNAL)) {
+                recieveSignal();
+            }
+        } catch (Exception e) {
+            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, e.getStackTrace());
+        }
+    }
 
     public void recieveSignal() {
         outDeficit--;
     }
-
-//    public boolean terminado(int inDeficit) {
-//        return terminado = (inDeficit == 0);
-//    }
-
-    //devuelve el identificador del nodo
+    
+    /**********************************************
+     *                  INTERFAZ
+     **********************************************/
     public int getNodeId() {
         return this.id;
     }
 
     public int getPadreId() {
         return this.idPadre;
-    }
-
-    /*Añade un hijo al nodo*/
-    public void addSucesor(int idSucesor) {
-        idSucesores.add(idSucesor);
-    }
-
-    /*Añade un predecesor al nodo*/
-    public void addPredecesor(int idPredecesor) {
-        idPredecesores.add(idPredecesor);
-    }
+    }    
 
     public List<Integer> predecesores() {
         return idPredecesores;
@@ -204,137 +267,87 @@ public class Nodo extends Thread {
         return idSucesores;
     }
 
-    boolean hasSucesor(int id) {
-        return idSucesores.contains(id);
-    }
-
-    boolean hasPredecesor(int id) {
-        return idPredecesores.contains(id);
-
-    }
-    
-    long getTime(){
+    long getTime() {
         return tiempo;
     }
+
+    int getNumMensajes() {
+        return mensajesEnviados;
+    }
+
+    /*********************************************************
+     *                  FUNCIONES AUXILIARES
+     *********************************************************/
     
-    int getNumMensajes(){
-        return numMensajes;
-    }
-
-    @Override
-    public void run() {
-        if (id == RAIZ) {
-            entorno();
-        } else {
-            noEntorno();
-        }
-    }
-
-    void print() {
-        System.out.println("id:\t" + id);
-        System.out.println("padre:\t" + idPadre);
-        System.out.println("predecesores:\t" + idPredecesores.toString());
-        System.out.println("sucesores:\t" + idSucesores.toString());
-    }
-
-    void initDeficits() {
-        //ponemos a cero todos los inDeficit del nodo
-        for (int i = 0; i < idPredecesores.size(); i++) {
+    private void initIncomingDeficits() {
+        inDeficits = new ArrayList<>(nodosEntrantes.size());
+        // Llenamos de 0 el array
+        for (Integer i : nodosEntrantes) {
             inDeficits.add(0);
         }
     }
+    
+    /*Añade un sucesor al nodo, si no existe*/
+    private boolean addSucesor(int idSucesor) {
+        if (idSucesores.contains(idSucesor)) {//ya existe este sucesor
+            return false;
+        } else {
+            idSucesores.add(idSucesor); //añade el nuevo sucesor
+            return true;
+        }
+    }
 
-    protected void trabajo(String mensaje) {
-        //el trabajo consiste en esperar un tiempo
-        int tiempo = Integer.parseInt(mensaje);
+    /*Añade un predecesor al nodo, si no existe*/
+    private boolean addPredecesor(int idPredecesor) {
+        if (idPredecesores.contains(idPredecesor)) {//ya existe este predecesor
+            return false;
+        } else {
+            idPredecesores.add(idPredecesor); //añade el nuevo predecesor
+            return true;
+        }
+    }
+    
+    /**
+     * Realiza un trabajo.     *
+     * @param trabajo string que contiene el trabajo a realizar
+     */
+    private void hacerTrabajo(String trabajo) {
+        int espera = Integer.parseInt(trabajo); //interpreta el trabajo como un tiempo de espera
         try {
-            Thread.sleep(tiempo);
+            Thread.sleep(espera);
         } catch (InterruptedException ex) {
             Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void entorno() {
-        String trabajo = "50";
-        tiempo = System.currentTimeMillis();
-        for (int i = 0; i < 1; i++) {
-            
-            for (int saliente : nodosSalientes) {//envía trabajo a todos los nodos salientes                
-//                System.out.println("[#" + id + "] envío de trabajo a #" + saliente + " : " + trabajo);
-                sendMensj(trabajo, saliente);
-            }
+    
 
-            while (outDeficit > 0) {
-                //mientras me deban mensajes
-                try {
-                    msg = recieve();
-                    //miro si me llegan signals
-                    if (msg.getMsg().equals(SIGNAL)) {
-                        recieveSignal();
-                    }
-                } catch (Exception e) {
-                    System.out.println(e.getStackTrace());
+    private void mandarTrabajo(String trabajo) {
+        for (int saliente : nodosSalientes) {//envía el trabajo a todos los nodos salientes                
+            sendMessage(trabajo, saliente);
+        }
+    }
+
+    /**
+     * Propaga el mensaje de finalizar a todos los hijos
+     */
+    private void finalizar() {
+        seguir = false;
+        for (Integer saliente : nodosSalientes) {
+            sendMessage(FIN, saliente);
+        }
+    }
+
+    private void procesarTrabajo(int origen, String trabajo) {
+        recieveMessage(origen);
+        if (idPadre == origen) {
+            for (int saliente : nodosSalientes) {
+                if (saliente != idPadre) {
+                    sendMessage(trabajo, saliente);
                 }
             }
-
-            
-         
         }
-        tiempo = System.currentTimeMillis()-tiempo;
-//        System.out.println("Mandamos terminar a todos los nodos");
-        // Decimos a todos los nodos que se paren
-        for (int saliente : nodosSalientes) {
-            sendMensj(FIN, saliente);
-        }
-
+        hacerTrabajo(trabajo);
+        sendSignal();
     }
-
-    private void noEntorno() {
-        Mensaje resp;
-        String msg; // Mensaje recibido
-        int origen; // Emisor del mensaje
-
-        while (seguir) {
-            resp = recieve();
-            msg = resp.getMsg();
-            origen = resp.getId();
-//            String header = ("[#" + id + "] mensaje recibido de #" + origen + " : " + msg);
-            switch (msg) {
-                case SIGNAL:
-//                    System.out.println(header + "\t=>\t" + SIGNAL);
-                    recieveSignal();
-                    break;
-                case FIN: //propaga el mensaje de finalizar
-//                    System.out.println(header + "\t=>\t" + FIN);
-                    seguir = false;
-                    for (Integer saliente : nodosSalientes) {
-                        sendMensj(msg, saliente);
-                    }
-
-                    break;
-                case "":
-//                    System.out.println(header + "\t=>\tno hay trabajo");
-                    sendSignal();
-                    break;
-                default:
-//                    System.out.println(header + "\t=>\ttrabaja!");
-//                    System.out.println("[#"+id+"]trabajo recibido de #"+origen+" : "+msg);
-                    recieveMensj(origen);
-                    if (idPadre == origen) {
-                        for (int saliente : nodosSalientes) {
-                            if (saliente != idPadre) {
-                                sendMensj(msg, saliente);
-                            }
-                        }
-                    }
-//                    System.out.println("[#"+id+"] trabajo a realizar: "+msg+" (de #"+origen+")");
-                    trabajo(msg);
-                    sendSignal();
-            }
-        }
-
-        seguir = true;
-        Client.close();
-    }
-
 }
