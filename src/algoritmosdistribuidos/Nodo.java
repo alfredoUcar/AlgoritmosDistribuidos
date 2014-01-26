@@ -1,21 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package algoritmosdistribuidos;
 
 import com.trendrr.beanstalk.BeanstalkClient;
 import com.trendrr.beanstalk.BeanstalkException;
 import com.trendrr.beanstalk.BeanstalkJob;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.*;
 
 /**
- *
- * @author pablo
+ * @author Pablo Riutort
+ * @author Alfredo Ucendo
  */
 public class Nodo extends Thread {
 
@@ -29,7 +24,6 @@ public class Nodo extends Thread {
     final static String FIN = "fin";
     final static String TRABAJO = "100";
 
-    final static int RAIZ = 0;  //ID asociado a la raiz o entorno
     private boolean seguir; // flag para los nodos 'no entorno'
 
     private final int id;
@@ -59,12 +53,11 @@ public class Nodo extends Thread {
         tube = String.valueOf(id);
         Client = new BeanstalkClient(HOST, PORT, tube);
         initIncomingDeficits();
-    }
-    
+    }    
     
     @Override
     public void run() {
-        if (id == RAIZ) {
+        if (id == Grafo.RAIZ) {
             entorno();
         } else {
             noEntorno();
@@ -77,22 +70,18 @@ public class Nodo extends Thread {
         tiempo = System.currentTimeMillis(); //inicia el tiempo
 
         mandarTrabajo(TRABAJO);
-
         while (outDeficit > 0) {//mientras me falten signals por recibir           
             comprobarSignals();
         }
-
         tiempo = System.currentTimeMillis() - tiempo; //detiene el tiempo
         finalizar();
-
     }
     
     //acciones llevadas a cabo por cualquier nodo que no sea raiz
     private void noEntorno() {
-
         while (seguir) {
             Mensaje msg = recieve();
-            String contenido = msg.getMsg();
+            String contenido = msg.getMessage();
             int origen = msg.getId();
             switch (contenido) {//procesa el mensaje recibido
                 case SIGNAL:
@@ -143,7 +132,7 @@ public class Nodo extends Thread {
         try {
             Client.useTube(tube);
             job = Client.reserve(1);
-            message = new String(job.getData()).split(":"); //separa el origen del contenido
+            message = (new String(job.getData())).split(":"); //separa el origen del contenido
             origen = message[0];
             contenido = message[1];
         } catch (BeanstalkException ex) {
@@ -170,7 +159,7 @@ public class Nodo extends Thread {
      * @param idReceptor
      */
     public void sendMessage(String mensaje, int idReceptor) {
-        if (idPadre != -1 || id == RAIZ) {//si está activo
+        if (idPadre != -1 || id == Grafo.RAIZ) {//si está activo
             send(mensaje, idReceptor);
             outDeficit++;
             mensajesEnviados++;
@@ -236,7 +225,7 @@ public class Nodo extends Thread {
     private void comprobarSignals() {
         try {
             //miro si me llegan signals
-            if (recieve().getMsg().equals(SIGNAL)) {
+            if (recieve().getMessage().equals(SIGNAL)) {
                 recieveSignal();
             }
         } catch (Exception e) {
@@ -246,6 +235,22 @@ public class Nodo extends Thread {
 
     public void recieveSignal() {
         outDeficit--;
+    }
+    
+    private void mandarTrabajo(String trabajo) {
+        for (int saliente : nodosSalientes) {//envía el trabajo a todos los nodos salientes                
+            sendMessage(trabajo, saliente);
+        }
+    }  
+    
+    /**
+     * Propaga el mensaje de finalizar a todos los hijos
+     */
+    private void finalizar() {
+        seguir = false;
+        for (Integer saliente : nodosSalientes) {
+            sendMessage(FIN, saliente);
+        }
     }
     
     /**********************************************
@@ -278,7 +283,7 @@ public class Nodo extends Thread {
     /*********************************************************
      *                  FUNCIONES AUXILIARES
      *********************************************************/
-    
+    //inicializacion del vector de inDeficits
     private void initIncomingDeficits() {
         inDeficits = new ArrayList<>(nodosEntrantes.size());
         // Llenamos de 0 el array
@@ -308,7 +313,7 @@ public class Nodo extends Thread {
     }
     
     /**
-     * Realiza un trabajo.     *
+     * Realiza un trabajo.
      * @param trabajo string que contiene el trabajo a realizar
      */
     private void hacerTrabajo(String trabajo) {
@@ -318,34 +323,12 @@ public class Nodo extends Thread {
         } catch (InterruptedException ex) {
             Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    
-
-    private void mandarTrabajo(String trabajo) {
-        for (int saliente : nodosSalientes) {//envía el trabajo a todos los nodos salientes                
-            sendMessage(trabajo, saliente);
-        }
-    }
-
-    /**
-     * Propaga el mensaje de finalizar a todos los hijos
-     */
-    private void finalizar() {
-        seguir = false;
-        for (Integer saliente : nodosSalientes) {
-            sendMessage(FIN, saliente);
-        }
-    }
+    }     
 
     private void procesarTrabajo(int origen, String trabajo) {
         recieveMessage(origen);
         if (idPadre == origen) {
-            for (int saliente : nodosSalientes) {
-                if (saliente != idPadre) {
-                    sendMessage(trabajo, saliente);
-                }
-            }
+            mandarTrabajo(trabajo);
         }
         hacerTrabajo(trabajo);
         sendSignal();

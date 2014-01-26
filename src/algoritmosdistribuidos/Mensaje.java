@@ -1,35 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package algoritmosdistribuidos;
 
 /**
- *
- * @author pablo
+ * @author Pablo Riutort
+ * @author Alfredo Ucendo
  */
 public class Mensaje {
     
-    private int id; //origen
-    private String msg;
+    private final int id; //origen
+    private final String message;
 
     public Mensaje(int id, String msg) {
         this.id = id;
-        this.msg = msg;
+        this.message = msg;
     }
     
     public int getId() {
         return id;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getMessage() {
+        return message;
     }
     
     public boolean equals(String txt){
-        return (msg == null ? txt == null : msg.equals(txt));
+        return (message == null ? txt == null : message.equals(txt));
     }
     
 }
