@@ -66,7 +66,6 @@ public class Nodo extends Thread {
     
     //acciones llevadas a cabo por el nodo raiz 
     private void entorno() {
-        Mensaje msg;
         tiempo = System.currentTimeMillis(); //inicia el tiempo
 
         mandarTrabajo(TRABAJO);
@@ -136,7 +135,6 @@ public class Nodo extends Thread {
             origen = message[0];
             contenido = message[1];
         } catch (BeanstalkException ex) {
-            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, ex);
             contenido = "";
             origen = "-1";
         }
@@ -167,12 +165,7 @@ public class Nodo extends Thread {
         }
     }
 
-    /**
-     * Método para recibir un mensaje de otro nodo. Recoge el primer mensaje en
-     * la cola de la tubería. Incrementa el inDeficit.
-     *
-     * @param idEmisor
-     */
+
     public void recieveMessage(int idEmisor) {
         if (idPadre == -1) {
             //es el primer mensaje que recibe y asigna su emisor como el padre
@@ -185,12 +178,7 @@ public class Nodo extends Thread {
             int index = nodosEntrantes.lastIndexOf(idEmisor);
             inDeficits.set(index, inDeficits.get(index) + 1); //inDeficit para ese nodo
             inDeficit++;
-        } catch (Exception e) {
-            String error = "Error en #" + id + ", no se pudo actualizar el inDeficit de #" + idEmisor + ": "
-                    + e.getMessage();
-            Logger.getLogger(Nodo.class.getName()).log(Level.SEVERE, null, error);
-
-        }
+        } catch (Exception e) {}
     }
 
     public boolean sendSignal() {

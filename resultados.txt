@@ -1,6 +1,6 @@
 #### Iteración 1 ####
-tiempo tardado: 39ms
-mensajes enviados: 136
+tiempo tardado: 239ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -9,9 +9,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -20,8 +20,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 2 ####
-tiempo tardado: 6ms
-mensajes enviados: 136
+tiempo tardado: 205ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -30,9 +30,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -42,7 +42,7 @@ Spanning tree:
 
 #### Iteración 3 ####
 tiempo tardado: 8ms
-mensajes enviados: 136
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -51,9 +51,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -62,8 +62,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 4 ####
-tiempo tardado: 4ms
-mensajes enviados: 136
+tiempo tardado: 3ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -72,9 +72,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -83,8 +83,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 5 ####
-tiempo tardado: 5ms
-mensajes enviados: 136
+tiempo tardado: 4ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -93,9 +93,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -104,8 +104,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 6 ####
-tiempo tardado: 5ms
-mensajes enviados: 136
+tiempo tardado: 8ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -114,9 +114,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -125,8 +125,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 7 ####
-tiempo tardado: 6ms
-mensajes enviados: 136
+tiempo tardado: 5ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -135,9 +135,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -146,8 +146,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 8 ####
-tiempo tardado: 7ms
-mensajes enviados: 136
+tiempo tardado: 6ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -156,9 +156,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -167,8 +167,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 9 ####
-tiempo tardado: 15ms
-mensajes enviados: 136
+tiempo tardado: 5ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -177,9 +177,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
@@ -188,8 +188,8 @@ Spanning tree:
 	11 -> 16
 
 #### Iteración 10 ####
-tiempo tardado: 12ms
-mensajes enviados: 136
+tiempo tardado: 5ms
+mensajes enviados: 135
 Spanning tree:
 	0 -> 1
 	0 -> 2
@@ -198,9 +198,9 @@ Spanning tree:
 	2 -> 5
 	2 -> 6
 	3 -> 7
-	4 -> 8
+	3 -> 8
 	5 -> 9
-	6 -> 10
+	5 -> 10
 	6 -> 11
 	7 -> 12
 	8 -> 13
