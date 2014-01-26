@@ -14,6 +14,7 @@ import java.util.logging.Logger;
  */
 public class AlgoritmosDistribuidos {
 
+    //nombres de los ficheros resultantes de la ejecución del programa
     private static final String fileName = "resultados.txt";
     private static final String graphFile = "graph.dot";
 
