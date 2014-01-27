@@ -25,7 +25,7 @@ public class AlgoritmosDistribuidos {
     static Grafo red = new Grafo(graphFile); //crea el grafo que define las conexiones de la red
     static Nodo[] nodos = new Nodo[red.size()]; //nodos de la red
 //    static BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Grafo.RAIZ));
-    static int iteraciones = 10; //repeticiones del trabajo    
+    static int iteraciones = 16; //repeticiones del trabajo    
 
     /**
      * @param args the command line arguments
