@@ -2,6 +2,7 @@ build/
 dist/
 private/
 nbproject/*
+spanningTrees/
 *.pdf
 *.xml
 
