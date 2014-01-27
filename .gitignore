@@ -3,6 +3,7 @@ dist/
 private/
 nbproject/*
 spanningTrees/
+*.odt
 *.pdf
 *.xml
 dotToPng
