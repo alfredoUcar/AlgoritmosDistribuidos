@@ -1,8 +1,7 @@
-/build/
-/dist/
-/private/
-/nbproject/*
+build/
+dist/
+private/
+nbproject/*
 *.pdf
-*.sh
 *.xml
 
