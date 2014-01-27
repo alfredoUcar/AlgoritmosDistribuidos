@@ -1,0 +1,8 @@
+#java -jar dist/AlgoritmosDistribuidos.jar
+# & cd src/com/trendrr/beanstalk/
+# beanstalkd -l localhost -p 11300
+cd spanningTrees
+
+for ((i=0; i<10; i++)) do
+	dot spanningTree$i.dot -o spanningTree$i.png -Tpng -Gcharset=latin1
+done

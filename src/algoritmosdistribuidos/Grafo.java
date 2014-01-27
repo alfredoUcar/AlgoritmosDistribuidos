@@ -62,9 +62,9 @@ public final class Grafo {
         return (nodes.indexOf(id) != -1);
     }
 
-    public void print() {
-        System.out.println(graphToString("Grafo", links));
-    }
+//    public void print() {
+//        System.out.println(graphToString("Grafo", links));
+//    }
 
     public int size() {
         return nodes.size();
@@ -115,16 +115,40 @@ public final class Grafo {
         return links;
     }
     
-    static String graphToString(String nombre,List<Enlace> enlaces) {
-        if (nombre == null) nombre="Grafo";
-        String res = nombre+":\n";
+//    static String graphToString(String nombre,List<Enlace> enlaces) {
+//        if (nombre == null) nombre="Grafo";
+//        String res = nombre+":\n";
+//        for (Enlace rel : enlaces) {
+//            res += "\t"+(rel.Pre() + " -> " + rel.Post()+"\n");
+//        }
+//        return res+="\n";
+//    }
+    
+    static String graphToString(String nombre,Nodo[]nodos){
+        List<Enlace> enlaces = getLinksFromNodes(nodos);
+        String res="";
+        if (nombre == null) res="Grafo";
+        
+        res += ":\n";
         for (Enlace rel : enlaces) {
-            res += "\t"+(rel.Pre() + " -> " + rel.Post()+"\n");
+            res += ""+(rel.Pre() + " -> " + rel.Post()+"\n");
         }
         return res+="\n";
     }
     
-    static String graphToString(String nombre,Nodo[]nodos){
-        return graphToString(nombre,getLinksFromNodes(nodos));
+    /**
+     * Pasamos el árbol de expansion mínima a un formato que pueda leer un .dot
+     * @param nodos
+     * @return 
+     */
+    static String graphToDot(Nodo[]nodos) {
+        List<Enlace> enlaces = getLinksFromNodes(nodos);
+        String res= "digraph G";
+        
+        res += "{\n";
+        for (Enlace rel : enlaces) {
+            res += ""+(rel.Pre() + " -> " + rel.Post()+"\n");
+        }
+        return res+="}";
     }
 }
