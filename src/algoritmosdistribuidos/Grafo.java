@@ -62,10 +62,6 @@ public final class Grafo {
         return (nodes.indexOf(id) != -1);
     }
 
-//    public void print() {
-//        System.out.println(graphToString("Grafo", links));
-//    }
-
     public int size() {
         return nodes.size();
     }
@@ -114,15 +110,6 @@ public final class Grafo {
         }
         return links;
     }
-    
-//    static String graphToString(String nombre,List<Enlace> enlaces) {
-//        if (nombre == null) nombre="Grafo";
-//        String res = nombre+":\n";
-//        for (Enlace rel : enlaces) {
-//            res += "\t"+(rel.Pre() + " -> " + rel.Post()+"\n");
-//        }
-//        return res+="\n";
-//    }
     
     static String graphToString(String nombre,Nodo[]nodos){
         List<Enlace> enlaces = getLinksFromNodes(nodos);

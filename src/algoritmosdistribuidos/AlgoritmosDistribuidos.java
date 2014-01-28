@@ -1,7 +1,6 @@
 
 package algoritmosdistribuidos;
 
-//import com.trendrr.beanstalk.BeanstalkClient;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,7 +23,6 @@ public class AlgoritmosDistribuidos {
 
     static Grafo red = new Grafo(graphFile); //crea el grafo que define las conexiones de la red
     static Nodo[] nodos = new Nodo[red.size()]; //nodos de la red
-//    static BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Grafo.RAIZ));
     static int iteraciones = 10; //repeticiones del trabajo    
 
     /**
@@ -87,6 +85,7 @@ public class AlgoritmosDistribuidos {
         }
     }
 
+    //generamos los resultados de las iteraciones
     public static void guardarResultados(int iteracion, BufferedWriter writer) {
         try {
             //primera ruta, en caso de que no se cree el fichero
