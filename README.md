@@ -18,7 +18,6 @@ Junta dos nodos en un enlace.
 Se utiliza para que los nodos se envíen mensajes entre ellos, contiene un id y un String que es el mensaje.
 
 ##AlgoritmosDistribuidos.java
-Este es el main, gestiona el inicio y el tratamiento de resultados del proyecto
 ---
 - Crea los hilos
 - Inicia los hilos
