@@ -1,8 +1,9 @@
 
 package algoritmosdistribuidos;
 
-import com.trendrr.beanstalk.BeanstalkClient;
+//import com.trendrr.beanstalk.BeanstalkClient;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -23,7 +24,7 @@ public class AlgoritmosDistribuidos {
 
     static Grafo red = new Grafo(graphFile); //crea el grafo que define las conexiones de la red
     static Nodo[] nodos = new Nodo[red.size()]; //nodos de la red
-    static BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Grafo.RAIZ));
+//    static BeanstalkClient Client = new BeanstalkClient(Nodo.HOST, Nodo.PORT, String.valueOf(Grafo.RAIZ));
     static int iteraciones = 10; //repeticiones del trabajo    
 
     /**
@@ -88,10 +89,25 @@ public class AlgoritmosDistribuidos {
 
     public static void guardarResultados(int iteracion, BufferedWriter writer) {
         try {
+            //primera ruta, en caso de que no se cree el fichero
+            String ruta = "spanningTree"+iteracion+".dot";
+            File folder = new File("spanningTrees/");
+            if (folder.mkdirs()||folder.exists()) {
+                //ruta para guardar los árboles en caso de que exista el fichero
+                ruta = "spanningTrees/spanningTree"+iteracion+".dot";
+            }
+            
+            FileWriter spanning = new FileWriter(ruta);
+            BufferedWriter buffer = new BufferedWriter(spanning);
+            
             writer.write("#### Iteración " + (iteracion + 1) + " ####\n");
             writer.write("tiempo tardado: " + tiempo + "ms\n");
             writer.write("mensajes enviados: " + mensajes + "\n");
             writer.write(Grafo.graphToString("Spanning tree",nodos));
+            buffer.write(Grafo.graphToDot(nodos));
+            
+            buffer.close();
+            spanning.close();
         } catch (IOException e) {
             System.out.println("Error al guardar los resultados de la iteración #" + iteracion + ": " + e.getMessage());
         }
